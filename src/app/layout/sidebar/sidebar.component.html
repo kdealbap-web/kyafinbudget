@@ -1,0 +1,306 @@
+﻿<!-- Overlay mobile con blur -->
+@if (isOpen()) {
+  <div
+    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
+    (click)="closeSidebar()"
+    aria-hidden="true"
+  ></div>
+}
+
+<!-- ═══════════════════════════════════════════
+     SIDEBAR PRINCIPAL
+════════════════════════════════════════════ -->
+<aside
+  [class.translate-x-0]="isOpen()"
+  [class.-translate-x-full]="!isOpen()"
+  class="fixed left-0 top-0 h-full w-[248px] flex flex-col
+         bg-white dark:bg-gray-950
+         border-r border-gray-100 dark:border-gray-800/60
+         z-50 transform transition-transform duration-300 ease-out
+         lg:translate-x-0 lg:static lg:z-auto"
+>
+
+  <!-- ── Logo / Brand ─────────────────────────── -->
+  <div class="flex items-center gap-3 px-5 py-[18px] border-b border-gray-100 dark:border-gray-800/60">
+    <div class="relative w-9 h-9 flex-shrink-0">
+      <div class="w-9 h-9 rounded-[10px] bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-md shadow-blue-900/20">
+        <!-- Icono finanzas SVG -->
+        <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <path d="M12 6v6l4 2"/>
+        </svg>
+      </div>
+    </div>
+    <div class="flex-1 min-w-0">
+      <h1 class="text-[15px] font-bold text-gray-900 dark:text-white leading-none tracking-tight">K&A Fin Budget</h1>
+      <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-[3px] font-medium">Gestión financiera</p>
+    </div>
+    <!-- Cerrar mobile -->
+    <button
+      (click)="closeSidebar()"
+      class="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 transition-all"
+      aria-label="Cerrar menú"
+    >
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ── Navegación ──────────────────────────── -->
+  <nav class="flex-1 px-3 py-4 overflow-y-auto space-y-0.5 scrollbar-none">
+
+    <!-- Grupo: Principal -->
+    <p class="px-3 pt-1 pb-2 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-[0.08em]">
+      Principal
+    </p>
+
+    @for (item of mainNavItems(); track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="active-nav-item"
+        [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+        class="nav-item"
+        (click)="closeSidebar()"
+      >
+        <span class="nav-icon">
+          <ng-container [ngSwitch]="item.path">
+            <ng-container *ngSwitchCase="'/dashboard'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/>
+                <rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/>
+              </svg>
+            </ng-container>
+            <ng-container *ngSwitchCase="'/transactions'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/>
+              </svg>
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+              </svg>
+            </ng-container>
+          </ng-container>
+        </span>
+        <span class="nav-label">{{ item.label }}</span>
+        @if (item.badge) {
+          <span class="ml-auto text-[10px] font-bold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">
+            {{ item.badge }}
+          </span>
+        }
+      </a>
+    }
+
+    <!-- Grupo: Finanzas -->
+    @if (canSeeFinance()) {
+      <p class="px-3 pt-5 pb-2 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-[0.08em]">
+        Finanzas
+      </p>
+      @for (item of financeNavItems(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active-nav-item"
+          class="nav-item"
+          (click)="closeSidebar()"
+        >
+          <span class="nav-icon">
+            <ng-container [ngSwitch]="item.path">
+              <ng-container *ngSwitchCase="'/accounts'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchCase="'/scheduled'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchCase="'/debts'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchCase="'/import'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchDefault>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+                </svg>
+              </ng-container>
+            </ng-container>
+          </span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    } @else {
+      <p class="px-3 pt-5 pb-2 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-[0.08em]">
+        Finanzas
+      </p>
+      <a
+        routerLink="/accounts"
+        routerLinkActive="active-nav-item"
+        class="nav-item"
+        (click)="closeSidebar()"
+      >
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+          </svg>
+        </span>
+        <span class="nav-label">Mis Cuentas</span>
+      </a>
+    }
+
+    <!-- Grupo: Administración -->
+    @if (isAdmin()) {
+      <p class="px-3 pt-5 pb-2 text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase tracking-[0.08em]">
+        Administración
+      </p>
+      @for (item of adminNavItems(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active-nav-item"
+          class="nav-item"
+          (click)="closeSidebar()"
+        >
+          <span class="nav-icon">
+            <ng-container [ngSwitch]="item.path">
+              <ng-container *ngSwitchCase="'/admin/users'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchCase="'/admin/audit'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchDefault>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </ng-container>
+            </ng-container>
+          </span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      }
+    }
+  </nav>
+
+  <!-- ── User card bottom ─────────────────────── -->
+  <div class="px-3 py-3 border-t border-gray-100 dark:border-gray-800/60">
+    <div class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800/60">
+      <!-- Avatar -->
+      <div class="relative flex-shrink-0">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+          {{ userInitial() }}
+        </div>
+        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+      </div>
+
+      <!-- Info -->
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-semibold text-gray-900 dark:text-gray-100 truncate leading-none">
+          {{ userProfile()?.full_name ?? 'Usuario' }}
+        </p>
+        <span
+          class="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide"
+          [class.bg-blue-100]="isAdmin()"
+          [class.text-blue-700]="isAdmin()"
+          [class.dark:bg-blue-900]="isAdmin()"
+          [class.dark:text-blue-300]="isAdmin()"
+          [class.bg-emerald-100]="isPartner()"
+          [class.text-emerald-700]="isPartner()"
+          [class.dark:bg-emerald-900]="isPartner()"
+          [class.dark:text-emerald-300]="isPartner()"
+          [class.bg-gray-100]="isUser()"
+          [class.text-gray-500]="isUser()"
+          [class.dark:bg-gray-800]="isUser()"
+          [class.dark:text-gray-400]="isUser()"
+        >
+          {{ roleLabel() }}
+        </span>
+      </div>
+
+      <!-- Logout -->
+      <button
+        (click)="logout()"
+        class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex-shrink-0"
+        title="Cerrar sesión"
+        aria-label="Cerrar sesión"
+      >
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</aside>
+
+<!-- ═══════════════════════════════════════════
+     BOTTOM NAV MOBILE
+════════════════════════════════════════════ -->
+<nav class="fixed bottom-0 left-0 right-0 z-30 lg:hidden
+            bg-white/95 dark:bg-gray-950/95 backdrop-blur-md
+            border-t border-gray-100 dark:border-gray-800/60
+            pb-[env(safe-area-inset-bottom,0px)]">
+  <div class="flex items-center justify-around px-1 pt-2 pb-1.5">
+    @for (item of bottomNavItems(); track item.path) {
+      @if (canAccess(item.path)) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bottom-nav-active"
+          class="bottom-nav-item"
+        >
+          <span class="bottom-nav-icon">
+            <ng-container [ngSwitch]="item.path">
+              <ng-container *ngSwitchCase="'/dashboard'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/>
+                  <rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchCase="'/transactions'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchCase="'/accounts'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchCase="'/scheduled'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchCase="'/debts'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </ng-container>
+              <ng-container *ngSwitchDefault>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="10"/>
+                </svg>
+              </ng-container>
+            </ng-container>
+          </span>
+          <span class="bottom-nav-label">{{ item.label }}</span>
+        </a>
+      }
+    }
+  </div>
+</nav>

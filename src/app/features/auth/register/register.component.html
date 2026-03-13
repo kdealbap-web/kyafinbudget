@@ -1,0 +1,178 @@
+﻿<div class="min-h-screen flex">
+
+  <!-- ── PANEL IZQUIERDO — BRANDING ─────────────────────────────────────── -->
+  <aside class="hidden lg:flex lg:w-1/2 xl:w-5/12 flex-col justify-between p-10 xl:p-14
+                 bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF] text-white relative overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/5 pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-16 w-80 h-80 rounded-full bg-white/5 pointer-events-none"></div>
+
+    <div class="relative z-10 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black text-lg">F</div>
+      <span class="text-xl font-bold">Finanzas<span class="text-blue-300">360</span></span>
+    </div>
+
+    <div class="relative z-10 space-y-6">
+      <div>
+        <h1 class="text-3xl xl:text-4xl font-bold leading-tight mb-3">Empieza a ordenar<br>tus finanzas hoy</h1>
+        <p class="text-blue-200 text-base leading-relaxed">
+          Únete y toma el control de cada peso que entra y sale.
+        </p>
+      </div>
+      <ul class="space-y-4">
+        <li class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">✅</div>
+          <p class="text-sm">Registro gratuito en menos de 1 minuto</p>
+        </li>
+        <li class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">🔒</div>
+          <p class="text-sm">Tus datos encriptados y seguros con Supabase</p>
+        </li>
+        <li class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">📱</div>
+          <p class="text-sm">Accede desde cualquier dispositivo</p>
+        </li>
+      </ul>
+    </div>
+    <p class="relative z-10 text-blue-300/60 text-xs">© 2026 K&A Fin Budget · Todos los derechos reservados</p>
+  </aside>
+
+  <!-- ── PANEL DERECHO — FORMULARIO ─────────────────────────────────────── -->
+  <main class="flex-1 flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-950">
+    <div class="w-full max-w-md">
+
+      <!-- Logo mobile -->
+      <div class="flex items-center gap-2 justify-center mb-8 lg:hidden">
+        <div class="w-9 h-9 rounded-xl bg-blue-700 flex items-center justify-center font-black text-white">F</div>
+        <span class="text-lg font-bold text-gray-900 dark:text-white">Finanzas<span
+            class="text-blue-600">360</span></span>
+      </div>
+
+      <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl shadow-gray-200/80 dark:shadow-black/40 p-8">
+
+        @if (!registered()) {
+        <div class="mb-7">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Crear cuenta</h2>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Completa los datos para registrarte.</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate class="space-y-4">
+
+          <!-- Nombre completo -->
+          <div>
+            <label class="f360-label" for="fullName">Nombre completo <span class="text-red-500">*</span></label>
+            <input id="fullName" type="text" formControlName="fullName" class="f360-input mt-1"
+              [class.border-red-500]="getError('fullName')" placeholder="Kevin Rodríguez" />
+            @if (getError('fullName')) {
+            <p class="f360-error">{{ getError('fullName') }}</p>
+            }
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="f360-label" for="email">Correo electrónico <span class="text-red-500">*</span></label>
+            <input id="email" type="email" formControlName="email" class="f360-input mt-1"
+              [class.border-red-500]="getError('email')" placeholder="nombre@ejemplo.com" />
+            @if (getError('email')) {
+            <p class="f360-error">{{ getError('email') }}</p>
+            }
+          </div>
+
+          <!-- Contraseña -->
+          <div>
+            <label class="f360-label" for="password">Contraseña <span class="text-red-500">*</span></label>
+            <div class="relative mt-1">
+              <input id="password" [type]="showPassword() ? 'text' : 'password'" formControlName="password"
+                class="f360-input pr-10" [class.border-red-500]="getError('password')"
+                placeholder="Mínimo 8 caracteres" />
+              <button type="button" (click)="showPassword.set(!showPassword())"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg transition-colors">
+                {{ showPassword() ? '🙈' : '👁️' }}
+              </button>
+            </div>
+            <!-- Barra de fuerza de contraseña -->
+            @if (form.get('password')?.value) {
+            <div class="flex gap-1 mt-2">
+              @for (i of [1,2,3,4]; track i) {
+              <div class="h-1.5 flex-1 rounded-full transition-colors"
+                [class.bg-red-400]="passwordStrength() >= i && passwordStrength() <= 1"
+                [class.bg-orange-400]="passwordStrength() >= i && passwordStrength() === 2"
+                [class.bg-yellow-400]="passwordStrength() >= i && passwordStrength() === 3"
+                [class.bg-emerald-500]="passwordStrength() >= i && passwordStrength() === 4"
+                [class.bg-gray-200]="passwordStrength() < i" [class.dark:bg-gray-700]="passwordStrength() < i"></div>
+              }
+            </div>
+            <p class="text-xs mt-1" [class.text-red-500]="passwordStrength() <= 1"
+              [class.text-orange-500]="passwordStrength() === 2" [class.text-yellow-600]="passwordStrength() === 3"
+              [class.text-emerald-600]="passwordStrength() === 4">
+              {{ ['', 'Débil', 'Regular', 'Buena', 'Fuerte'][passwordStrength()] }}
+            </p>
+            }
+            @if (getError('password')) {
+            <p class="f360-error">{{ getError('password') }}</p>
+            }
+          </div>
+
+          <!-- Confirmar contraseña -->
+          <div>
+            <label class="f360-label" for="confirmPassword">Confirmar contraseña <span
+                class="text-red-500">*</span></label>
+            <div class="relative mt-1">
+              <input id="confirmPassword" [type]="showConfirmPassword() ? 'text' : 'password'"
+                formControlName="confirmPassword" class="f360-input pr-10"
+                [class.border-red-500]="getError('confirmPassword')" placeholder="Repite tu contraseña" />
+              <button type="button" (click)="showConfirmPassword.set(!showConfirmPassword())"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg transition-colors">
+                {{ showConfirmPassword() ? '🙈' : '👁️' }}
+              </button>
+            </div>
+            @if (getError('confirmPassword')) {
+            <p class="f360-error">{{ getError('confirmPassword') }}</p>
+            }
+          </div>
+
+          <!-- Botón registrar -->
+          <button type="submit" class="f360-btn-primary w-full flex items-center justify-center gap-2 !py-3 !mt-6"
+            [disabled]="isLoading()">
+            @if (isLoading()) {
+            <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            Creando cuenta...
+            } @else {
+            Crear cuenta →
+            }
+          </button>
+
+          <p class="text-center text-sm text-gray-500 dark:text-gray-400 !mt-4">
+            ¿Ya tienes cuenta?
+            <a routerLink="/auth/login" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-semibold">
+              Iniciar sesión
+            </a>
+          </p>
+
+        </form>
+
+        } @else {
+        <!-- Estado: cuenta creada -->
+        <div class="text-center py-4">
+          <div
+            class="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-3xl mx-auto mb-4">
+            🎉
+          </div>
+          <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">¡Bienvenido a K&A Fin Budget</h2>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">
+            Revisa tu correo electrónico para confirmar tu cuenta. Una vez confirmada, podrás iniciar sesión.
+          </p>
+          <a routerLink="/auth/login" class="f360-btn-primary w-full flex items-center justify-center !py-3">
+            Ir a inicio de sesión
+          </a>
+        </div>
+        }
+
+      </div>
+
+      <p class="text-center text-xs text-gray-400 dark:text-gray-600 mt-5">
+        Al registrarte aceptas los Términos de servicio y la Política de privacidad.
+      </p>
+    </div>
+  </main>
+
+</div>

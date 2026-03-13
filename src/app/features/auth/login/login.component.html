@@ -1,0 +1,160 @@
+﻿<div class="min-h-screen flex">
+
+  <!-- ── PANEL IZQUIERDO — BRANDING (oculto en mobile) ──────────────────── -->
+  <aside class="hidden lg:flex lg:w-1/2 xl:w-5/12 flex-col justify-between p-10 xl:p-14
+                 bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1E40AF]
+                 text-white relative overflow-hidden">
+
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/5 pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-16 w-80 h-80 rounded-full bg-white/5 pointer-events-none"></div>
+
+    <!-- Logo -->
+    <div class="relative z-10">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center font-black text-lg">
+          K&A
+        </div>
+        <span class="text-xl font-bold tracking-tight">Fin<span class="text-blue-300"> Budget</span></span>
+      </div>
+    </div>
+
+    <!-- Tagline + features -->
+    <div class="relative z-10 space-y-8">
+      <div>
+        <h1 class="text-3xl xl:text-4xl font-bold leading-tight mb-3">
+          Toma el control<br>de tus finanzas
+        </h1>
+        <p class="text-blue-200 text-base leading-relaxed">
+          Gestiona ingresos, gastos, deudas y pagos programados desde un solo lugar.
+        </p>
+      </div>
+
+      <ul class="space-y-4">
+        <li class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-base flex-shrink-0">📊</div>
+          <div>
+            <p class="font-semibold text-sm">Dashboard en tiempo real</p>
+            <p class="text-blue-300 text-xs mt-0.5">Visualiza tus finanzas con gráficas claras</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-base flex-shrink-0">🔒</div>
+          <div>
+            <p class="font-semibold text-sm">Acceso seguro con doble verificación</p>
+            <p class="text-blue-300 text-xs mt-0.5">Contraseña + código OTP por email cada sesión</p>
+          </div>
+        </li>
+        <li class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center text-base flex-shrink-0">👥</div>
+          <div>
+            <p class="font-semibold text-sm">Gestión en pareja</p>
+            <p class="text-blue-300 text-xs mt-0.5">Portafolios compartidos para el hogar</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <p class="relative z-10 text-blue-300/60 text-xs">
+      © 2026 K&A Fin Budget · Todos los derechos reservados
+    </p>
+  </aside>
+
+  <!-- ── PANEL DERECHO — FORMULARIO ─────────────────────────────────────── -->
+  <main class="flex-1 flex items-center justify-center p-6 bg-gray-50 dark:bg-gray-950">
+    <div class="w-full max-w-md">
+
+      <!-- Logo (solo mobile) -->
+      <div class="flex items-center gap-2 justify-center mb-8 lg:hidden">
+        <div class="w-9 h-9 rounded-xl bg-blue-700 flex items-center justify-center font-black text-white">F</div>
+        <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+          K&A<span class="text-blue-600"> Budget</span>
+        </span>
+      </div>
+
+      <!-- Card del formulario -->
+      <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl shadow-gray-200/80 dark:shadow-black/40 p-8">
+
+        <div class="mb-7">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Iniciar sesión</h2>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
+            Ingresa tus credenciales. Recibirás un código de verificación por email.
+          </p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" novalidate class="space-y-5">
+
+          <!-- Email -->
+          <div>
+            <label class="f360-label" for="email-input">Correo electrónico</label>
+            <div class="relative mt-1">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">✉️</span>
+              <input id="email-input" type="email" inputmode="email" autocomplete="email" class="f360-input pl-10"
+                [class.border-red-500]="emailError" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email"
+                placeholder="nombre@ejemplo.com" />
+            </div>
+            @if (emailError) {
+            <p class="f360-error mt-1">{{ emailError }}</p>
+            }
+          </div>
+
+          <!-- Contraseña -->
+          <div>
+            <label class="f360-label" for="password-input">Contraseña</label>
+            <div class="relative mt-1">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">🔑</span>
+              <input [id]="'password-input'" [type]="showPassword() ? 'text' : 'password'"
+                autocomplete="current-password" class="f360-input pl-10 pr-10" [class.border-red-500]="passwordError"
+                [ngModel]="password()" (ngModelChange)="password.set($event)" name="password"
+                placeholder="Tu contraseña" />
+              <button type="button" (click)="showPassword.set(!showPassword())"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-lg transition-colors">
+                {{ showPassword() ? '🙈' : '👁️' }}
+              </button>
+            </div>
+            @if (passwordError) {
+            <p class="f360-error mt-1">{{ passwordError }}</p>
+            }
+            <div class="flex justify-end mt-1.5">
+              <a routerLink="/auth/reset-password"
+                class="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors">
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+          </div>
+
+          <!-- Error de servicio -->
+          @if (errorMessage()) {
+          <div
+            class="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+            {{ errorMessage() }}
+          </div>
+          }
+
+          <!-- Botón continuar -->
+          <button type="submit" class="f360-btn-primary w-full flex items-center justify-center gap-2 !py-3"
+            [disabled]="isLoading()">
+            @if (isLoading()) {
+            <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            Verificando...
+            } @else {
+            Continuar →
+            }
+          </button>
+
+          <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+            ¿No tienes cuenta?
+            <a routerLink="/auth/register" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-semibold">
+              Regístrate
+            </a>
+          </p>
+
+        </form>
+      </div>
+
+      <p class="text-center text-xs text-gray-400 dark:text-gray-600 mt-5">
+        Al continuar aceptas los Términos de servicio y la Política de privacidad de K&A Fin Budget.
+      </p>
+    </div>
+  </main>
+
+</div>

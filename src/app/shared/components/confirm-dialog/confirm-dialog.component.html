@@ -1,0 +1,44 @@
+@if (isVisible()) {
+  <div
+    id="confirm-overlay"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+    (click)="onOverlayClick($event)"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 animate-slide-up">
+
+      <!-- Icono + Título -->
+      <div class="flex flex-col items-center text-center px-8 pt-8 pb-4">
+        <div class="w-14 h-14 rounded-full flex items-center justify-center text-2xl mb-4 {{ iconConfig.bg }}">
+          {{ iconConfig.icon }}
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 leading-snug">
+          {{ options().title }}
+        </h3>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+          {{ options().message }}
+        </p>
+      </div>
+
+      <!-- Acciones -->
+      <div class="flex gap-3 px-8 pb-8 pt-4">
+        <button
+          type="button"
+          class="f360-btn-secondary flex-1"
+          (click)="cancel()"
+        >
+          {{ options().cancelLabel }}
+        </button>
+        <button
+          type="button"
+          class="flex-1 {{ confirmBtnClass }}"
+          (click)="confirm()"
+        >
+          {{ options().confirmLabel }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

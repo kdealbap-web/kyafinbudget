@@ -1,0 +1,201 @@
+﻿<div class="min-h-screen bg-gray-50 dark:bg-gray-950 pt-6 px-4 md:px-6 pb-24 lg:pb-8">
+  <div class="w-full max-w-3xl mx-auto space-y-5">
+
+    <header class="f360-page-header">
+      <div>
+        <h1 class="f360-page-title">{{ isEditMode() ? 'Editar pago programado' : 'Nuevo pago programado' }}</h1>
+        <p class="f360-page-subtitle">Configura pagos recurrentes con cuenta origen y alertas.</p>
+      </div>
+      <a class="f360-btn-secondary w-full sm:w-auto" routerLink="/scheduled">Volver</a>
+    </header>
+
+    <form class="f360-card space-y-6" [formGroup]="form" (ngSubmit)="submit()">
+
+      <!-- Concepto + Monto -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2">
+          <label class="f360-label">Concepto *</label>
+          <input
+            class="f360-input"
+            [class.border-red-400]="hasError('concept')"
+            formControlName="concept"
+            placeholder="Ej: Netflix, Arriendo, Gimnasio"
+          />
+          @if (hasError('concept')) {
+            <p class="f360-error">El concepto es obligatorio (mínimo 2 caracteres).</p>
+          }
+        </div>
+
+        <div>
+          <label class="f360-label">Monto mensual * (COP)</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">$</span>
+            <input
+              class="f360-input pl-8"
+              [class.border-red-400]="hasError('amount')"
+              type="number"
+              min="1"
+              formControlName="amount"
+              placeholder="0"
+            />
+          </div>
+          @if (hasError('amount')) {
+            <p class="f360-error">Ingresa un monto mayor a cero.</p>
+          }
+        </div>
+
+        <div>
+          <label class="f360-label">Portafolio *</label>
+          <select
+            class="f360-select"
+            [class.border-red-400]="hasError('portfolio_id')"
+            formControlName="portfolio_id"
+          >
+            <option value="">Selecciona un portafolio</option>
+            @for (portfolio of portfolios(); track portfolio.id) {
+              <option [value]="portfolio.id">{{ portfolio.name }}</option>
+            }
+          </select>
+          @if (hasError('portfolio_id')) {
+            <p class="f360-error">Selecciona un portafolio.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Día del mes -->
+      <div>
+        <p class="f360-label">Día del mes *</p>
+        <div class="grid grid-cols-7 sm:grid-cols-11 gap-2">
+          @for (day of dayOptions; track day) {
+            <button
+              type="button"
+              class="min-h-10 rounded-xl text-sm font-semibold border transition-all"
+              [class.border-blue-600]="form.controls.day_of_month.value === day"
+              [class.bg-blue-700]="form.controls.day_of_month.value === day"
+              [class.text-white]="form.controls.day_of_month.value === day"
+              [class.border-gray-200]="form.controls.day_of_month.value !== day"
+              [class.dark:border-gray-700]="form.controls.day_of_month.value !== day"
+              [class.text-gray-600]="form.controls.day_of_month.value !== day"
+              [class.dark:text-gray-300]="form.controls.day_of_month.value !== day"
+              [class.hover:bg-gray-50]="form.controls.day_of_month.value !== day"
+              [class.dark:hover:bg-gray-700]="form.controls.day_of_month.value !== day"
+              (click)="selectDay(day)"
+            >
+              {{ day }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Cuenta origen -->
+      <div>
+        <p class="f360-label">Cuenta origen *</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          @for (account of accounts(); track account.id) {
+            <button
+              type="button"
+              class="w-full rounded-xl border p-3 text-left transition-all"
+              [class.border-blue-500]="form.controls.account_id.value === account.id"
+              [class.bg-blue-50]="form.controls.account_id.value === account.id"
+              [class.dark:bg-blue-900]="form.controls.account_id.value === account.id"
+              [class.dark:bg-opacity-30]="form.controls.account_id.value === account.id"
+              [class.border-gray-200]="form.controls.account_id.value !== account.id"
+              [class.dark:border-gray-700]="form.controls.account_id.value !== account.id"
+              [class.hover:bg-gray-50]="form.controls.account_id.value !== account.id"
+              [class.dark:hover:bg-gray-700]="form.controls.account_id.value !== account.id"
+              (click)="selectAccount(account.id)"
+            >
+              <div class="flex items-center gap-3">
+                <app-bank-logo
+                  [slug]="account.bank_slug ?? ''"
+                  [name]="account.bank_name ?? account.name"
+                  [color]="account.color ?? '#64748B'"
+                  size="sm"
+                ></app-bank-logo>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{{ account.name }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ account.bank_name || 'Sin banco' }}</p>
+                </div>
+              </div>
+            </button>
+          }
+        </div>
+        @if (hasError('account_id')) {
+          <p class="f360-error mt-2">Selecciona una cuenta de origen.</p>
+        }
+      </div>
+
+      <!-- Categoría -->
+      <div>
+        <p class="f360-label">Categoría *</p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          @for (cat of categoryOptions; track cat.value) {
+            <button
+              type="button"
+              class="rounded-xl border px-3 py-2.5 text-sm font-semibold transition-all text-left"
+              [class.border-blue-500]="form.controls.category.value === cat.value"
+              [class.bg-blue-50]="form.controls.category.value === cat.value"
+              [class.text-blue-700]="form.controls.category.value === cat.value"
+              [class.dark:bg-blue-900]="form.controls.category.value === cat.value"
+              [class.dark:bg-opacity-30]="form.controls.category.value === cat.value"
+              [class.dark:text-blue-300]="form.controls.category.value === cat.value"
+              [class.border-gray-200]="form.controls.category.value !== cat.value"
+              [class.dark:border-gray-700]="form.controls.category.value !== cat.value"
+              [class.text-gray-700]="form.controls.category.value !== cat.value"
+              [class.dark:text-gray-200]="form.controls.category.value !== cat.value"
+              [class.hover:bg-gray-50]="form.controls.category.value !== cat.value"
+              [class.dark:hover:bg-gray-700]="form.controls.category.value !== cat.value"
+              (click)="selectCategory(cat.value)"
+            >
+              {{ cat.emoji }} {{ cat.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Email de alerta + Toggle activo -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <div>
+          <label class="f360-label">Email de alerta (opcional)</label>
+          <input
+            class="f360-input"
+            [class.border-red-400]="hasError('alert_email')"
+            type="email"
+            formControlName="alert_email"
+            placeholder="correo@ejemplo.com"
+          />
+          @if (hasError('alert_email')) {
+            <p class="f360-error">Ingresa un email válido.</p>
+          }
+        </div>
+
+        <label class="flex items-center gap-3 cursor-pointer pb-3">
+          <div class="relative">
+            <input type="checkbox" class="sr-only peer" formControlName="is_active" />
+            <div class="w-11 h-6 rounded-full bg-gray-300 dark:bg-gray-600
+                        peer-checked:bg-emerald-500 transition-colors"></div>
+            <div class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow
+                        transition-transform peer-checked:translate-x-5"></div>
+          </div>
+          <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">Activo</span>
+        </label>
+      </div>
+
+      <!-- Footer botones -->
+      <footer class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+        <a class="f360-btn-secondary w-full" routerLink="/scheduled">Cancelar</a>
+        <button
+          class="f360-btn-primary w-full"
+          type="submit"
+          [disabled]="form.invalid || isSaving()"
+        >
+          @if (isSaving()) {
+            <span class="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin mr-2"></span>
+          }
+          {{ isEditMode() ? 'Actualizar pago' : 'Guardar pago' }}
+        </button>
+      </footer>
+
+    </form>
+  </div>
+</div>

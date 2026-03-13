@@ -1,0 +1,83 @@
+﻿<div class="min-h-full bg-gray-50 dark:bg-gray-950 pt-6 px-4 md:px-6 pb-24 lg:pb-8">
+  <header class="f360-page-header">
+    <div>
+      <h1 class="f360-page-title">Configuración</h1>
+      <p class="f360-page-subtitle">Preferencias de la app y seguridad.</p>
+    </div>
+  </header>
+
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="f360-card p-5">
+      <h2 class="text-base font-bold text-gray-900 dark:text-gray-100">Apariencia</h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Elige cómo quieres ver la aplicación.</p>
+
+      <div class="mt-4 flex gap-2">
+        <button
+          type="button"
+          class="px-4 py-2.5 rounded-xl border text-sm font-semibold transition-colors"
+          [class.border-gray-200]="theme() !== 'light'"
+          [class.dark:border-gray-700]="theme() !== 'light'"
+          [class.bg-white]="theme() !== 'light'"
+          [class.dark:bg-gray-900]="theme() !== 'light'"
+          [class.text-gray-700]="theme() !== 'light'"
+          [class.dark:text-gray-200]="theme() !== 'light'"
+          [class.border-blue-600]="theme() === 'light'"
+          [class.bg-blue-50]="theme() === 'light'"
+          [class.text-blue-700]="theme() === 'light'"
+          (click)="setTheme('light')"
+        >
+          Modo claro
+        </button>
+
+        <button
+          type="button"
+          class="px-4 py-2.5 rounded-xl border text-sm font-semibold transition-colors"
+          [class.border-gray-200]="theme() !== 'dark'"
+          [class.dark:border-gray-700]="theme() !== 'dark'"
+          [class.bg-white]="theme() !== 'dark'"
+          [class.dark:bg-gray-900]="theme() !== 'dark'"
+          [class.text-gray-700]="theme() !== 'dark'"
+          [class.dark:text-gray-200]="theme() !== 'dark'"
+          [class.border-blue-600]="theme() === 'dark'"
+          [class.dark:bg-blue-900]="theme() === 'dark'"
+          [class.text-blue-700]="theme() === 'dark'"
+          [class.dark:text-blue-200]="theme() === 'dark'"
+          (click)="setTheme('dark')"
+        >
+          Modo oscuro
+        </button>
+      </div>
+
+      <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+        Se guarda en este dispositivo.
+      </p>
+    </div>
+
+    <div class="f360-card p-5">
+      <h2 class="text-base font-bold text-gray-900 dark:text-gray-100">Seguridad</h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Gestiona tu acceso y protege tu cuenta.
+      </p>
+
+      <div class="mt-4 grid grid-cols-1 gap-3">
+        <button type="button" class="f360-btn-secondary" (click)="goToMfa()" [disabled]="isBusy()">
+          Verificación en dos pasos (MFA)
+        </button>
+
+        <button type="button" class="f360-btn-secondary" (click)="sendPasswordReset()" [disabled]="isBusy()">
+          Restablecer contraseña
+        </button>
+
+        <button type="button" class="f360-btn-danger" (click)="logout()" [disabled]="isBusy()">
+          Cerrar sesión
+        </button>
+      </div>
+
+      @if (email()) {
+        <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+          Correo: <span class="font-semibold">{{ email() }}</span>
+        </p>
+      }
+    </div>
+  </section>
+</div>

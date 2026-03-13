@@ -1,0 +1,126 @@
+﻿<div class="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+
+        <!-- Logo -->
+        <div class="flex items-center gap-2 justify-center mb-8">
+            <div class="w-9 h-9 rounded-xl bg-blue-700 flex items-center justify-center font-black text-white">K&A</div>
+            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+                Fin<span class="text-blue-600">Budget</span>
+            </span>
+        </div>
+
+        <!-- Card principal -->
+        <div
+            class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl shadow-gray-200/80 dark:shadow-black/40 p-8 text-center">
+
+            <!-- Ícono de escudo animado CSS -->
+            <div class="relative mx-auto w-20 h-20 mb-6">
+                <!-- Círculo pulsante de fondo -->
+                <span
+                    class="absolute inset-0 rounded-full bg-blue-100 dark:bg-blue-900/30 animate-ping opacity-50"></span>
+                <div
+                    class="relative w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-3xl shadow-lg shadow-blue-500/30">
+                    🔐
+                </div>
+            </div>
+
+            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">Verificación en dos pasos</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Ingresa el código de 8 dígitos enviado a:
+            </p>
+            <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-7">
+                {{ maskedEmail() }}
+            </p>
+
+            <!-- ── 8 INPUTS OTP ───────────────────────────────────────────── -->
+            <div class="flex gap-2 justify-center mb-5" [class.animate-shake]="shake()">
+                @for (digit of digits(); track $index; let i = $index) {
+                <input [id]="'otp-' + i" type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code"
+                    class="w-10 h-12 rounded-xl text-center text-lg font-bold border-2 outline-none transition-all
+                        bg-gray-50 dark:bg-gray-800
+                        text-gray-900 dark:text-gray-100
+                        border-gray-200 dark:border-gray-700
+                        focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
+                        caret-blue-600" [class.border-red-500]="errorMessage() && !digit"
+                    [class.border-emerald-400]="digit" [value]="digit" (input)="onInput(i, $event)"
+                    (keydown)="onKeyDown(i, $event)" (paste)="onPaste($event)" />
+                }
+            </div>
+
+            <!-- Error -->
+            @if (errorMessage()) {
+            <div
+                class="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300 text-left mb-4">
+                {{ errorMessage() }}
+            </div>
+            }
+
+            <!-- Botón verificar -->
+            <button type="button" (click)="onSubmit()"
+                class="f360-btn-primary w-full flex items-center justify-center gap-2 !py-3 mb-4"
+                [disabled]="!isComplete() || isLoading()">
+                @if (isLoading()) {
+                <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Verificando...
+                } @else {
+                Verificar código
+                }
+            </button>
+
+            <!-- Reenviar con countdown -->
+            <div class="text-sm">
+                @if (canResend()) {
+                <button type="button" (click)="resendCode()"
+                    class="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-semibold transition-colors">
+                    Reenviar código
+                </button>
+                } @else {
+                <span class="text-gray-400 dark:text-gray-500">
+                    Reenviar en <span class="font-semibold text-gray-600 dark:text-gray-300">{{ countdown() }}s</span>
+                </span>
+                }
+            </div>
+
+            <!-- Volver -->
+            <div class="mt-5 pt-5 border-t border-gray-100 dark:border-gray-800">
+                <a routerLink="/auth/login"
+                    class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                    ← Volver al inicio de sesión
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<!-- Shake keyframe (inline style, compatible con Tailwind JIT) -->
+<style>
+    @keyframes shake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        20% {
+            transform: translateX(-8px);
+        }
+
+        40% {
+            transform: translateX(8px);
+        }
+
+        60% {
+            transform: translateX(-6px);
+        }
+
+        80% {
+            transform: translateX(6px);
+        }
+    }
+
+    .animate-shake {
+        animation: shake 0.5s ease-in-out;
+    }
+</style>

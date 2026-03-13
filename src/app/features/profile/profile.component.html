@@ -1,0 +1,61 @@
+﻿<div class="min-h-full bg-gray-50 dark:bg-gray-950 pt-6 px-4 md:px-6 pb-24 lg:pb-8">
+  <header class="f360-page-header">
+    <div>
+      <h1 class="f360-page-title">Mi perfil</h1>
+      <p class="f360-page-subtitle">Actualiza tu información personal.</p>
+    </div>
+  </header>
+
+  @if (!profile()) {
+    <section class="f360-card flex items-center justify-center py-16">
+      <span class="w-9 h-9 rounded-full border-4 border-gray-200 dark:border-gray-700 border-t-blue-700 animate-spin"></span>
+    </section>
+  } @else {
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="f360-card p-5">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-blue-700 text-white flex items-center justify-center font-bold text-lg">
+            {{ userInitial() }}
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">{{ profile()?.full_name }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ profile()?.email }}</p>
+          </div>
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 gap-3">
+          <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 p-4">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Rol</p>
+            <p class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{{ roleLabel() }}</p>
+          </div>
+        </div>
+      </div>
+
+      <form class="f360-card p-5 lg:col-span-2" [formGroup]="form" (ngSubmit)="save()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="f360-label">Nombre completo</label>
+            <input class="f360-input" type="text" formControlName="full_name" placeholder="Tu nombre" />
+            @if (form.controls.full_name.touched && form.controls.full_name.invalid) {
+              <p class="f360-error mt-2">Ingresa un nombre válido (mínimo 2 caracteres).</p>
+            }
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="f360-label">Correo</label>
+            <input class="f360-input" type="email" [value]="profile()?.email" disabled />
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-col sm:flex-row gap-3 sm:justify-end">
+          <button type="button" class="f360-btn-secondary" (click)="resetForm()" [disabled]="isSaving()">
+            Cancelar
+          </button>
+          <button type="submit" class="f360-btn-primary" [disabled]="isSaving() || form.pristine">
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</div>

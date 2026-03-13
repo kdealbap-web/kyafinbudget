@@ -1,0 +1,292 @@
+﻿<div class="pt-6 px-4 md:px-6 pb-24 lg:pb-6" style="color: var(--color-text-primary)">
+<!-- HEADER -->
+<div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+
+    <!-- Saludo -->
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {{ greeting() }} 👋
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm capitalize">
+            {{ todayDateLong }}
+        </p>
+    </div>
+
+    <!-- Selector período -->
+    <div class="flex flex-col gap-2">
+        <!-- Selector año -->
+        <div class="flex items-center gap-2 justify-end">
+            <button (click)="changeYear(-1)"
+                class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors">
+                &larr; </button>
+            <span class="font-semibold text-gray-800 dark:text-gray-100 w-12 text-center">{{ selectedYear() }}</span>
+            <button (click)="changeYear(1)"
+                class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors">
+                &rarr; </button>
+        </div>
+        <!-- Tabs meses scrollable -->
+        <div class="flex gap-1 overflow-x-auto pb-1 max-w-full md:max-w-md scrollbar-hide">
+            <button (click)="selectMonth(null)"
+                class="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+                [ngClass]="selectedMonth() === null ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'">
+                Todos
+            </button>
+            @for (mes of MONTHS_LIST; track $index) {
+            <button (click)="selectMonth($index)"
+                class="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors capitalize"
+                [ngClass]="selectedMonth() === $index ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'">
+                {{ mes.slice(0,3) }}
+            </button>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- LOADING STATE -->
+@if (isLoading()) {
+<div class="flex justify-center items-center py-20">
+    <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none"
+        viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+        </path>
+    </svg>
+</div>
+}
+
+@if (!isLoading()) {
+
+<!-- KPI CARDS -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+    <!-- Card Gastos -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border-l-4 border-red-500 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Gastos</span>
+            <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-lg shadow-inner">
+                💸
+            </div>
+        </div>
+        <p class="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100 truncate" title="{{ totalExpenses() | currencyCop }}">
+            {{ totalExpenses() | currencyCop }}
+        </p>
+    </div>
+
+    <!-- Card Ingresos -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border-l-4 border-green-500 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total Ingresos</span>
+            <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-lg shadow-inner">
+                💰
+            </div>
+        </div>
+        <p class="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100 truncate" title="{{ totalIncome() | currencyCop }}">
+            {{ totalIncome() | currencyCop }}
+        </p>
+    </div>
+
+    <!-- Card Balance -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Balance</span>
+            <div class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-lg shadow-inner">
+                ⚖️
+            </div>
+        </div>
+        <p class="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100 truncate" [class.text-red-600]="balance() < 0"
+            title="{{ balance() | currencyCop }}">
+            {{ balance() | currencyCop }}
+        </p>
+    </div>
+
+    <!-- Card Ahorro -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border-l-4 border-amber-500 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Ahorro (%)</span>
+            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-lg shadow-inner">
+                🎯
+            </div>
+        </div>
+        <p class="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100 truncate">
+            @if (totalIncome() > 0) {
+            {{ (balance() > 0 ? (balance() / totalIncome()) * 100 : 0) | number:'1.1-1' }}%
+            } @else {
+            0.0%
+            }
+        </p>
+    </div>
+
+</div>
+
+<!-- GRÁFICAS -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- Gastos por mes -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+        <h3 class="font-semibold text-gray-800 dark:text-gray-100 w-full mb-4">
+            📊 Gastos por mes
+        </h3>
+        <div class="w-full relative h-[250px] flex justify-center">
+            <canvas #barCanvas></canvas>
+        </div>
+    </div>
+
+    <!-- Kevin vs Angely -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+        <h3 class="font-semibold text-gray-800 dark:text-gray-100 w-full mb-4">
+            👥 Aportes: Kevin vs Angely
+        </h3>
+        <div class="relative flex items-center justify-center h-[250px] w-full">
+            <canvas #doughnutCanvas></canvas>
+            <!-- Texto centro del donut -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+                <span class="text-xs text-gray-500 dark:text-gray-400">Total</span>
+                <span class="text-lg font-bold font-mono text-gray-800 dark:text-gray-100">
+                    {{ totalExpenses() | currencyCop }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Evolución histórica FULL WIDTH -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm mb-8 flex flex-col justify-center min-h-[350px]">
+    <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-4">
+        📈 Evolución histórica {{ selectedYear() }}
+    </h3>
+    <div class="w-full relative h-[300px] flex justify-center">
+        <canvas #lineCanvas></canvas>
+    </div>
+</div>
+
+<!-- TOP CATEGORÍAS + SUGERENCIAS -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- Top 5 Categorías -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm h-full max-h-[400px] overflow-y-auto custom-scrollbar">
+        <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-6 sticky top-0 bg-white dark:bg-gray-800 z-10 py-1">
+            🏆 Top categorías de gasto
+        </h3>
+
+        @if (topCategories().length === 0) {
+        <div class="text-center py-8 text-gray-400">
+            <p>No hay gastos registrados en este período.</p>
+        </div>
+        }
+
+        @for (cat of topCategories(); track cat.name) {
+        <div class="flex items-center gap-4 mb-5 last:mb-0 group">
+            <div
+                class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-2xl shadow-sm border border-gray-100 dark:border-gray-700 group-hover:scale-105 transition-transform">
+                {{ cat.emoji }}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex justify-between items-baseline mb-2 gap-2">
+                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
+                        {{ cat.name }}
+                    </span>
+                    <span class="text-sm font-mono font-medium text-gray-600 dark:text-gray-300 shrink-0">
+                        {{ cat.amount | currencyCop }}
+                    </span>
+                </div>
+                <div class="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700 shadow-inner">
+                    <div class="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
+                        [style.width.%]="cat.percentage">
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- Sugerencias de Ahorro -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm h-full max-h-[400px] overflow-y-auto custom-scrollbar">
+        <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-6 sticky top-0 bg-white dark:bg-gray-800 z-10 py-1">
+            💡 Sugerencias de ahorro
+        </h3>
+
+        @if (savingsSuggestions().length === 0) {
+        <div class="text-center py-12 text-gray-400 flex flex-col items-center">
+            <span class="text-5xl mb-3 animate-bounce">🎉</span>
+            <p class="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">
+                ¡Todo bajo control este período!
+            </p>
+        </div>
+        }
+
+        @for (tip of savingsSuggestions(); track tip) {
+        <div
+            class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 last:mb-0 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow">
+            <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
+            <p class="text-sm text-amber-800 font-medium leading-relaxed">{{ tip }}</p>
+        </div>
+        }
+    </div>
+
+</div>
+
+<!-- TRANSACCIONES RECIENTES -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            🕒 Transacciones recientes
+        </h3>
+        <a routerLink="/transactions"
+            class="text-sm font-medium text-primary hover:text-blue-700 hover:underline transition-colors flex items-center gap-1">
+            Ver todas <span aria-hidden="true">&rarr;</span>
+        </a>
+    </div>
+
+    <div class="flex flex-col gap-1">
+        @for (tx of recentTransactions(); track tx.id) {
+        <div
+            class="flex items-center gap-4 py-3 px-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-default border-b border-gray-50 last:border-0 relative group">
+
+            <!-- Avatar pagador -->
+            <div class="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 shadow-inner border-2 border-white ring-2 ring-gray-50 z-10"
+                [class.bg-blue-600]="tx.payerInitial==='K'" [class.bg-green-600]="tx.payerInitial==='A'"
+                [class.bg-gray-400]="tx.payerInitial!=='K' && tx.payerInitial!=='A'"
+                title="Pagado por {{ tx.payerName }}">
+                {{ tx.payerInitial }}
+            </div>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0 flex flex-col gap-0.5 z-10">
+                <p class="font-semibold text-gray-800 dark:text-gray-100 truncate group-hover:text-primary transition-colors">
+                    {{ tx.concept }}
+                </p>
+                <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <span class="font-medium bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{{ tx.category }}</span>
+                    <span class="text-gray-400">&bull;</span>
+                    <span class="truncate">{{ tx.date | relativeDate }}</span>
+                </div>
+            </div>
+
+            <!-- Monto -->
+            <div class="flex flex-col items-end z-10 shrink-0">
+                <span class="font-mono font-bold text-sm tracking-tight" [class.text-red-600]="tx.type==='expense'"
+                    [class.text-green-600]="tx.type==='income'">
+                    {{ tx.type==='expense' ? '-' : '+' }}
+                    {{ tx.amount | currencyCop }}
+                </span>
+            </div>
+        </div>
+        }
+
+        @if (recentTransactions().length === 0) {
+        <div
+            class="text-center py-10 text-gray-400 flex flex-col items-center justify-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+            <span class="text-3xl mb-2">🤷‍♂️</span>
+            <p class="font-medium">No hay transacciones en este período</p>
+        </div>
+        }
+    </div>
+</div>
+
+} <!-- fin @if !isLoading -->
+</div>
+
+
+

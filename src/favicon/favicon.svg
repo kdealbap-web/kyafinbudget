@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#0F2057"/>
+  <rect x="0" y="0" width="64" height="3.5" rx="2" fill="#D4A017" opacity="0.95"/>
+  <rect x="0" y="60.5" width="64" height="3.5" rx="2" fill="#D4A017" opacity="0.95"/>
+  <line x1="8" y1="48" x2="56" y2="48" stroke="#D4A017" stroke-width="0.5" opacity="0.28"/>
+  <line x1="8" y1="38" x2="56" y2="38" stroke="#D4A017" stroke-width="0.5" opacity="0.28"/>
+  <line x1="8" y1="28" x2="56" y2="28" stroke="#D4A017" stroke-width="0.5" opacity="0.28"/>
+  <rect x="8"  y="42" width="8" height="12" rx="2" fill="#D4A017" opacity="0.38"/>
+  <rect x="20" y="34" width="8" height="20" rx="2" fill="#D4A017" opacity="0.55"/>
+  <rect x="32" y="26" width="8" height="28" rx="2" fill="#D4A017" opacity="0.38"/>
+  <polyline points="12,43 24,35 36,27 50,18" fill="none" stroke="#F5C842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="12,50 24,44 36,37 50,30 58,24" fill="none" stroke="#60A5FA" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="3,2.5" opacity="0.6"/>
+  <circle cx="50" cy="18" r="3.5" fill="#F5C842"/>
+  <circle cx="50" cy="18" r="1.6" fill="#0F2057"/>
+  <text x="32" y="59" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="700" fill="#F5C842" text-anchor="middle" letter-spacing="-0.5">K&amp;A</text>
+</svg>

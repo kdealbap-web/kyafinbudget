@@ -1,0 +1,573 @@
+<div class="min-h-full bg-gray-50 dark:bg-gray-950 pt-6 px-4 md:px-6 pb-24 lg:pb-8">
+
+  <!-- ══════════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════════ -->
+  <div class="f360-page-header">
+    <div>
+      <h1 class="f360-page-title">Mis Deudas</h1>
+      <p class="f360-page-subtitle">Controla deudas personales, del hogar y pagos pendientes.</p>
+    </div>
+    <button
+      type="button"
+      class="f360-btn-primary w-full sm:w-auto"
+      (click)="openCreateDebtModal()"
+    >
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Nueva deuda
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       RESUMEN — 3 tarjetas de stats
+  ═══════════════════════════════════════════ -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+
+    <!-- Total activa -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-600 to-red-700 p-5 text-white shadow-lg shadow-red-900/20">
+      <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10"></div>
+      <div class="absolute -bottom-6 -left-4 w-20 h-20 rounded-full bg-white/5"></div>
+      <p class="text-xs font-semibold text-red-200 uppercase tracking-wider">Total deuda activa</p>
+      <p class="text-2xl font-mono font-bold mt-1.5 tracking-tight">
+        {{ totalDebt() | currencyCop }}
+      </p>
+      <div class="mt-3 flex items-center gap-1.5 text-red-200 text-xs font-medium">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
+        {{ debts().length }} deuda{{ debts().length !== 1 ? 's' : '' }} registrada{{ debts().length !== 1 ? 's' : '' }}
+      </div>
+    </div>
+
+    <!-- Personal -->
+    <div class="f360-card !p-5">
+      <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Deuda personal</p>
+      <p class="text-xl font-mono font-bold text-gray-900 dark:text-gray-100 mt-1.5">
+        {{ personalDebt() | currencyCop }}
+      </p>
+      <div class="mt-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold">
+        <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+        Personal
+      </div>
+    </div>
+
+    <!-- Hogar -->
+    <div class="f360-card !p-5">
+      <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Deuda del hogar</p>
+      <p class="text-xl font-mono font-bold text-gray-900 dark:text-gray-100 mt-1.5">
+        {{ householdDebt() | currencyCop }}
+      </p>
+      <div class="mt-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+        Hogar
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TABS
+  ═══════════════════════════════════════════ -->
+  <div class="flex items-center gap-1 p-1 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 mb-5 w-full overflow-x-auto">
+    @for (tab of tabConfig; track tab.id) {
+      <button
+        type="button"
+        (click)="setTab(tab.id)"
+        class="flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 whitespace-nowrap min-w-[80px]"
+        [class.bg-blue-700]="activeTab() === tab.id"
+        [class.text-white]="activeTab() === tab.id"
+        [class.shadow-sm]="activeTab() === tab.id"
+        [class.text-gray-500]="activeTab() !== tab.id"
+        [class.hover:text-gray-800]="activeTab() !== tab.id"
+        [class.dark:text-gray-400]="activeTab() !== tab.id"
+        [class.dark:hover:text-gray-200]="activeTab() !== tab.id"
+      >
+        {{ tab.label }}
+        @if (tab.count() > 0) {
+          <span
+            class="text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none"
+            [class.bg-blue-500]="activeTab() === tab.id"
+            [class.text-white]="activeTab() === tab.id"
+            [class.bg-gray-100]="activeTab() !== tab.id"
+            [class.text-gray-500]="activeTab() !== tab.id"
+            [class.dark:bg-gray-800]="activeTab() !== tab.id"
+            [class.dark:text-gray-400]="activeTab() !== tab.id"
+          >{{ tab.count() }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       ESTADOS: CARGANDO / VACÍO / LISTA
+  ═══════════════════════════════════════════ -->
+
+  @if (isLoading()) {
+    <div class="flex items-center justify-center py-20">
+      <div class="flex flex-col items-center gap-3">
+        <span class="w-10 h-10 rounded-full border-[3px] border-gray-200 dark:border-gray-700 border-t-blue-600 animate-spin"></span>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Cargando deudas...</p>
+      </div>
+    </div>
+
+  } @else if (filteredDebts().length === 0) {
+    <div class="f360-card flex flex-col items-center text-center py-16 gap-4">
+      <div class="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-base font-bold text-gray-900 dark:text-gray-100">Sin deudas registradas</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-xs">
+          Agrega deudas para medir el avance de pago y controlar vencimientos.
+        </p>
+      </div>
+      <button type="button" class="f360-btn-primary mt-2" (click)="openCreateDebtModal()">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Crear deuda
+      </button>
+    </div>
+
+  } @else {
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      @for (debt of filteredDebts(); track debt.id) {
+
+        @let progress = getProgress(debt);
+        @let urgency = getDueUrgency(debt.due_date);
+
+        <article class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden">
+
+          <!-- Barra de progreso superior -->
+          <div class="h-1 w-full {{ getProgressTrackClass(progress) }}">
+            <div
+              class="h-full transition-all duration-500 {{ getProgressClass(progress) }}"
+              [style.width.%]="progress"
+            ></div>
+          </div>
+
+          <div class="p-5 space-y-4">
+
+            <!-- Fila superior: nombre + badge tipo -->
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 truncate leading-tight">
+                  {{ debt.name }}
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                  {{ debt.creditor || 'Sin acreedor definido' }}
+                </p>
+              </div>
+              <span class="f360-badge flex-shrink-0 {{ getTypeBadgeClass(debt.type) }}">
+                {{ getTypeLabel(debt.type) }}
+              </span>
+            </div>
+
+            <!-- Progreso de pago -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Progreso de pago</span>
+                <span
+                  class="text-xs font-bold"
+                  [class.text-emerald-600]="progress > 50"
+                  [class.dark:text-emerald-400]="progress > 50"
+                  [class.text-amber-600]="progress <= 50 && progress > 25"
+                  [class.dark:text-amber-400]="progress <= 50 && progress > 25"
+                  [class.text-red-600]="progress <= 25"
+                  [class.dark:text-red-400]="progress <= 25"
+                >{{ progress | number:'1.0-0' }}%</span>
+              </div>
+              <div class="h-2 rounded-full overflow-hidden {{ getProgressTrackClass(progress) }}">
+                <div
+                  class="h-full rounded-full transition-all duration-500 {{ getProgressClass(progress) }}"
+                  [style.width.%]="progress"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Montos: Total / Pagado / Pendiente -->
+            <div class="grid grid-cols-3 gap-2">
+              <div class="rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 p-3">
+                <p class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">Total</p>
+                <p class="text-sm font-mono font-bold text-gray-800 dark:text-gray-100 mt-0.5 truncate">
+                  {{ debt.total_amount | currencyCop }}
+                </p>
+              </div>
+              <div class="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/40 p-3">
+                <p class="text-[10px] font-semibold text-emerald-600 dark:text-emerald-500 uppercase tracking-wide">Pagado</p>
+                <p class="text-sm font-mono font-bold text-emerald-700 dark:text-emerald-300 mt-0.5 truncate">
+                  {{ debt.paid_amount | currencyCop }}
+                </p>
+              </div>
+              <div class="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/40 p-3">
+                <p class="text-[10px] font-semibold text-red-500 dark:text-red-500 uppercase tracking-wide">Pendiente</p>
+                <p class="text-sm font-mono font-bold text-red-700 dark:text-red-300 mt-0.5 truncate">
+                  {{ debt.remaining_amount | currencyCop }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Footer: vencimiento + acciones -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+
+              <!-- Indicador de vencimiento -->
+              <div class="flex items-center gap-1.5 {{ urgency.class }}">
+                <svg class="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+                <span class="text-xs font-semibold">
+                  @if (debt.due_date) {
+                    Vence: {{ debt.due_date | date:'d MMM yyyy':'':'es-CO' }} · {{ urgency.label }}
+                  } @else {
+                    Sin fecha de vencimiento
+                  }
+                </span>
+              </div>
+
+              <!-- Botones de acción -->
+              <div class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  (click)="openPaymentModal(debt)"
+                  class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold
+                         bg-blue-700 text-white hover:bg-blue-800 active:scale-95 transition-all"
+                  title="Registrar pago"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                  Pagar
+                </button>
+                <button
+                  type="button"
+                  (click)="openEditDebtModal(debt)"
+                  class="w-8 h-8 flex items-center justify-center rounded-xl
+                         text-gray-500 hover:text-blue-700 hover:bg-blue-50
+                         dark:text-gray-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20
+                         border border-gray-200 dark:border-gray-700 transition-all"
+                  title="Editar"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  (click)="deleteDebt(debt)"
+                  class="w-8 h-8 flex items-center justify-center rounded-xl
+                         text-gray-400 hover:text-red-600 hover:bg-red-50
+                         dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20
+                         border border-gray-200 dark:border-gray-700 transition-all"
+                  title="Eliminar"
+                >
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: REGISTRAR PAGO
+═══════════════════════════════════════════════════════ -->
+@if (showPaymentModal() && selectedDebt(); as debt) {
+  <div
+    class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+    (click)="closePaymentModal()"
+  >
+    <div
+      class="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-2xl animate-slide-up"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Header modal -->
+      <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+            <svg class="w-5 h-5 text-blue-700 dark:text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-gray-900 dark:text-gray-100">Registrar pago</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">{{ debt.name }}</p>
+          </div>
+        </div>
+        <button type="button" (click)="closePaymentModal()"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Saldo pendiente -->
+      <div class="mx-6 mt-5 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/40 flex items-center justify-between">
+        <span class="text-xs font-semibold text-red-600 dark:text-red-400">Saldo pendiente</span>
+        <span class="text-base font-mono font-bold text-red-700 dark:text-red-300">
+          {{ debt.remaining_amount | currencyCop }}
+        </span>
+      </div>
+
+      <!-- Formulario -->
+      <form class="px-6 py-5 space-y-4" [formGroup]="paymentForm" (ngSubmit)="registerPayment()">
+
+        <!-- Monto -->
+        <div>
+          <label class="f360-label">Monto a pagar <span class="text-red-500">*</span></label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400 pointer-events-none">$</span>
+            <input
+              class="f360-input pl-8"
+              type="number"
+              inputmode="numeric"
+              min="1"
+              formControlName="amount"
+              placeholder="0"
+            />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-gray-400 pointer-events-none">COP</span>
+          </div>
+          @if (hasPaymentError('amount')) {
+            <p class="f360-error">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Ingresa un monto válido
+            </p>
+          }
+        </div>
+
+        <!-- Cuenta origen -->
+        <div>
+          <label class="f360-label">Cuenta origen <span class="text-red-500">*</span></label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            @for (account of accounts(); track account.id) {
+              <button
+                type="button"
+                class="rounded-xl border p-3 text-left transition-all duration-150"
+                [class.border-blue-500]="paymentForm.controls.account_id.value === account.id"
+                [class.bg-blue-50]="paymentForm.controls.account_id.value === account.id"
+                [class.dark:bg-blue-900/20]="paymentForm.controls.account_id.value === account.id"
+                [class.dark:border-blue-500]="paymentForm.controls.account_id.value === account.id"
+                [class.border-gray-200]="paymentForm.controls.account_id.value !== account.id"
+                [class.dark:border-gray-700]="paymentForm.controls.account_id.value !== account.id"
+                [class.hover:border-gray-300]="paymentForm.controls.account_id.value !== account.id"
+                (click)="paymentForm.controls.account_id.setValue(account.id)"
+              >
+                <div class="flex items-center gap-2">
+                  <app-bank-logo [slug]="account.bank_slug ?? ''" [name]="account.bank_name ?? account.name" size="sm"></app-bank-logo>
+                  <span class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{{ account.name }}</span>
+                </div>
+              </button>
+            }
+          </div>
+          @if (hasPaymentError('account_id')) {
+            <p class="f360-error mt-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              Selecciona una cuenta
+            </p>
+          }
+        </div>
+
+        <!-- Acciones -->
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button type="button" class="f360-btn-secondary" (click)="closePaymentModal()">Cancelar</button>
+          <button
+            type="submit"
+            class="f360-btn-primary"
+            [class.is-loading]="isLoading()"
+            [disabled]="paymentForm.invalid || isLoading()"
+          >
+            @if (!isLoading()) {
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Confirmar pago
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL: FORMULARIO DEUDA (CREAR / EDITAR)
+═══════════════════════════════════════════════════════ -->
+@if (showDebtFormModal()) {
+  <div
+    class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+    (click)="closeDebtFormModal()"
+  >
+    <div
+      class="w-full max-w-2xl max-h-[90vh] flex flex-col bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-2xl animate-slide-up"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+               [class.bg-blue-100]="!editingDebtId()"
+               [class.dark:bg-blue-900/40]="!editingDebtId()"
+               [class.bg-amber-100]="editingDebtId()"
+               [class.dark:bg-amber-900/40]="editingDebtId()">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                 [class.text-blue-700]="!editingDebtId()"
+                 [class.dark:text-blue-400]="!editingDebtId()"
+                 [class.text-amber-600]="editingDebtId()"
+                 [class.dark:text-amber-400]="editingDebtId()">
+              @if (!editingDebtId()) {
+                <path d="M12 5v14M5 12h14"/>
+              } @else {
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              }
+            </svg>
+          </div>
+          <h2 class="text-base font-bold text-gray-900 dark:text-gray-100">
+            {{ editingDebtId() ? 'Editar deuda' : 'Nueva deuda' }}
+          </h2>
+        </div>
+        <button type="button" (click)="closeDebtFormModal()"
+          class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Cuerpo con scroll -->
+      <form class="flex-1 overflow-y-auto px-6 py-5" [formGroup]="debtForm" (ngSubmit)="submitDebtForm()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <!-- Nombre -->
+          <div>
+            <label class="f360-label">Nombre <span class="text-red-500">*</span></label>
+            <input class="f360-input" [class.error]="hasDebtError('name')" formControlName="name" placeholder="Ej: Préstamo Bancolombia" />
+            @if (hasDebtError('name')) { <p class="f360-error">El nombre es obligatorio.</p> }
+          </div>
+
+          <!-- Acreedor -->
+          <div>
+            <label class="f360-label">Acreedor</label>
+            <input class="f360-input" formControlName="creditor" placeholder="Ej: Bancolombia" />
+          </div>
+
+          <!-- Tipo -->
+          <div>
+            <label class="f360-label">Tipo <span class="text-red-500">*</span></label>
+            <select class="f360-select" formControlName="type">
+              @for (option of debtTypeOptions; track option.value) {
+                <option [ngValue]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Estado -->
+          <div>
+            <label class="f360-label">Estado <span class="text-red-500">*</span></label>
+            <select class="f360-select" formControlName="status">
+              <option [ngValue]="DebtStatus.Active">Activa</option>
+              <option [ngValue]="DebtStatus.Overdue">Vencida</option>
+              <option [ngValue]="DebtStatus.Paid">Pagada</option>
+            </select>
+          </div>
+
+          <!-- Monto total -->
+          <div>
+            <label class="f360-label">Monto total <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400 pointer-events-none">$</span>
+              <input class="f360-input pl-8" [class.error]="hasDebtError('total_amount')" type="number" min="1" formControlName="total_amount" placeholder="0" />
+            </div>
+            @if (hasDebtError('total_amount')) { <p class="f360-error">Ingresa un monto válido.</p> }
+          </div>
+
+          <!-- Monto pagado -->
+          <div>
+            <label class="f360-label">Monto pagado</label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400 pointer-events-none">$</span>
+              <input class="f360-input pl-8" type="number" min="0" formControlName="paid_amount" placeholder="0" />
+            </div>
+          </div>
+
+          <!-- Tasa interés -->
+          <div>
+            <label class="f360-label">Tasa interés (%)</label>
+            <input class="f360-input" type="number" min="0" step="0.01" formControlName="interest_rate" placeholder="0.00" />
+          </div>
+
+          <!-- Fecha vencimiento -->
+          <div>
+            <label class="f360-label">Fecha de vencimiento</label>
+            <input class="f360-input" type="date" formControlName="due_date" />
+          </div>
+
+          <!-- Cuenta asociada -->
+          <div>
+            <label class="f360-label">Cuenta asociada</label>
+            <select class="f360-select" formControlName="account_id">
+              <option [ngValue]="null">Sin cuenta</option>
+              @for (account of accounts(); track account.id) {
+                <option [ngValue]="account.id">{{ account.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Portafolio -->
+          <div>
+            <label class="f360-label">Portafolio</label>
+            <select class="f360-select" formControlName="portfolio_id">
+              <option [ngValue]="null">Sin portafolio</option>
+              @for (portfolio of portfolios(); track portfolio.id) {
+                <option [ngValue]="portfolio.id">{{ portfolio.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Descripción -->
+          <div class="md:col-span-2">
+            <label class="f360-label">Descripción</label>
+            <textarea class="f360-textarea" rows="3" formControlName="description" placeholder="Detalles adicionales..."></textarea>
+          </div>
+
+          <!-- Compartida -->
+          <div class="md:col-span-2">
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input type="checkbox" class="w-4 h-4 rounded accent-blue-700 cursor-pointer" formControlName="is_shared" />
+              <span class="text-sm font-semibold text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                Deuda compartida con pareja
+              </span>
+            </label>
+          </div>
+
+        </div>
+      </form>
+
+      <!-- Footer con acciones -->
+      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex gap-3 flex-shrink-0 bg-gray-50 dark:bg-gray-800/50">
+        <button type="button" class="f360-btn-secondary flex-1" (click)="closeDebtFormModal()">Cancelar</button>
+        <button
+          type="button"
+          class="f360-btn-primary flex-1"
+          [class.is-loading]="isLoading()"
+          [disabled]="debtForm.invalid || isLoading()"
+          (click)="submitDebtForm()"
+        >
+          @if (!isLoading()) {
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ editingDebtId() ? 'Guardar cambios' : 'Crear deuda' }}
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}

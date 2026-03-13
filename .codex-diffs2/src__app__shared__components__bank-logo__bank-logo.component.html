@@ -1,0 +1,35 @@
+﻿<div
+  class="flex-shrink-0 rounded-xl overflow-hidden flex items-center justify-center"
+  [style.background-color]="containerBg()"
+  [ngClass]="{
+    'w-8 h-8': size() === 'sm',
+    'w-10 h-10': size() === 'md',
+    'w-12 h-12': size() === 'lg'
+  }"
+>
+  <img
+    *ngIf="!hasError() && imagePath()"
+    [src]="imagePath()"
+    [alt]="name()"
+    (error)="onImageError()"
+    class="object-contain p-1"
+    [ngClass]="{
+      'w-6 h-6': size() === 'sm',
+      'w-8 h-8': size() === 'md',
+      'w-10 h-10': size() === 'lg'
+    }"
+  />
+
+  <!-- Fallback: inicial con color del banco -->
+  <span
+    *ngIf="hasError() || !imagePath()"
+    class="font-bold text-white"
+    [ngClass]="{
+      'text-xs': size() === 'sm',
+      'text-sm': size() === 'md',
+      'text-base': size() === 'lg'
+    }"
+  >
+    {{ name().charAt(0).toUpperCase() }}
+  </span>
+</div>

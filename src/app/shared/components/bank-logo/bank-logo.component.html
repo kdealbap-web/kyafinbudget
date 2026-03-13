@@ -1,0 +1,23 @@
+﻿<div
+  class="flex-shrink-0 rounded-xl overflow-hidden flex items-center justify-center"
+  [style.background-color]="containerBg()"
+  [ngClass]="sizeClass()"
+>
+  <img
+    *ngIf="!hasError() && imagePath()"
+    [src]="imagePath()"
+    [alt]="name()"
+    (error)="onImageError()"
+    class="object-contain p-1"
+    [ngClass]="imageClass()"
+  />
+
+  <!-- Fallback: inicial con color del banco -->
+  <span
+    *ngIf="hasError() || !imagePath()"
+    class="font-bold text-white"
+    [ngClass]="textSizeClass()"
+  >
+    {{ name().charAt(0).toUpperCase() }}
+  </span>
+</div>

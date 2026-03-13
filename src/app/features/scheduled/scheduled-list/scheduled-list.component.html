@@ -1,0 +1,95 @@
+﻿<div class="min-h-full bg-gray-50 dark:bg-gray-950 pt-6 px-4 md:px-6 pb-24 lg:pb-8">
+  <header class="f360-page-header">
+    <div>
+      <h1 class="f360-page-title">Pagos Programados</h1>
+      <p class="f360-page-subtitle">Automatiza y monitorea pagos e ingresos mensuales.</p>
+    </div>
+    <a routerLink="/scheduled/new" class="f360-btn-primary w-full sm:w-auto">+ Nuevo pago</a>
+  </header>
+
+  @if (isLoading()) {
+  <section class="f360-card flex items-center justify-center py-16">
+    <span class="w-9 h-9 rounded-full border-4 border-gray-200 border-t-blue-700 animate-spin"></span>
+  </section>
+  } @else if (scheduledPayments().length === 0) {
+  <section class="f360-card text-center py-16">
+    <div class="text-5xl mb-3">📅</div>
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">No hay pagos programados</h2>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-5">Crea tu primer pago recurrente para controlar tus
+      fechas clave.</p>
+    <a routerLink="/scheduled/new" class="f360-btn-primary inline-flex">Crear pago programado</a>
+  </section>
+  } @else {
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    @for (payment of scheduledPayments(); track payment.id) {
+    <article class="f360-card p-5 space-y-4 shadow-lg">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div
+            class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 flex items-center justify-center text-xl">
+            {{ getCategoryIcon(payment.category) }}
+          </div>
+          <div class="min-w-0">
+            <h3 class="text-base font-bold text-gray-900 dark:text-gray-100 truncate">{{ payment.concept }}</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Cada día {{ payment.day_of_month }}</p>
+          </div>
+        </div>
+        <span class="text-lg font-mono font-bold flex-shrink-0" [class.text-red-600]="payment.type === 'expense'"
+          [class.text-emerald-600]="payment.type === 'income'">
+          {{ payment.amount | currencyCop }}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-700/40">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Cuenta origen</p>
+          <div class="flex items-center gap-2">
+            <app-bank-logo [slug]="payment.account?.bank_slug ?? ''" [name]="payment.account?.bank_name ?? payment.account?.name ?? 'Cuenta'" [color]="payment.account?.color ?? '#64748B'"
+              size="sm"></app-bank-logo>
+            <span class="font-semibold text-gray-700 dark:text-gray-200 truncate">
+              {{ payment.account?.name ?? 'Sin cuenta' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-700/40">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Próximo pago</p>
+          <p class="font-semibold text-gray-700 dark:text-gray-200">{{ getNextDateLabel(payment.day_of_month) }}</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <label class="inline-flex items-center gap-2 text-xs font-semibold cursor-pointer">
+          <button type="button" (click)="toggleActive(payment)"
+            class="relative inline-flex h-6 w-11 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+            [class.bg-emerald-500]="payment.is_active" [class.bg-gray-300]="!payment.is_active"
+            [class.dark:bg-gray-600]="!payment.is_active"
+            [attr.aria-label]="payment.is_active ? 'Desactivar pago' : 'Activar pago'">
+            <span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
+              [class.translate-x-5]="payment.is_active" [class.translate-x-0.5]="!payment.is_active"></span>
+          </button>
+          <span class="f360-badge" [class.bg-emerald-100]="payment.is_active"
+            [class.text-emerald-700]="payment.is_active" [class.dark:bg-emerald-900]="payment.is_active"
+            [class.dark:text-emerald-300]="payment.is_active" [class.bg-gray-100]="!payment.is_active"
+            [class.text-gray-600]="!payment.is_active" [class.dark:bg-gray-700]="!payment.is_active"
+            [class.dark:text-gray-400]="!payment.is_active">
+            {{ payment.is_active ? 'Activo' : 'Inactivo' }}
+          </span>
+        </label>
+
+        <div class="flex gap-2">
+          <a [routerLink]="['/scheduled', payment.id, 'edit']" class="f360-btn-secondary text-sm px-4 py-2 min-h-11">
+            Editar
+          </a>
+          <button type="button" (click)="requestDelete(payment)" class="f360-btn-danger text-sm px-4 py-2 min-h-11">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </article>
+    }
+  </section>
+  }
+</div>
+
+<app-confirm-dialog></app-confirm-dialog>

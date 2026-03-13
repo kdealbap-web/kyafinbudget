@@ -1,0 +1,197 @@
+﻿<div class="min-h-full bg-gray-50 dark:bg-gray-950 pt-6 px-4 md:px-6 pb-24 lg:pb-8">
+
+    <!-- Header -->
+    <header class="f360-page-header">
+        <div>
+            <h1 class="f360-page-title">Transacciones</h1>
+            <p class="f360-page-subtitle">Historial de ingresos y gastos del período.</p>
+        </div>
+        <a routerLink="/transactions/new" class="f360-btn-primary w-full sm:w-auto">
+            + Nueva transacción
+        </a>
+    </header>
+
+    <!-- ── STATS CARDS ────────────────────────────────────────────────────── -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <!-- Ingresos -->
+        <div class="f360-card p-5 flex items-center gap-4">
+            <div
+                class="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-xl flex-shrink-0">
+                💰</div>
+            <div class="min-w-0">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Ingresos</p>
+                <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate">{{ totalIncome() |
+                    currencyCop }}</p>
+            </div>
+        </div>
+        <!-- Gastos -->
+        <div class="f360-card p-5 flex items-center gap-4">
+            <div
+                class="w-11 h-11 rounded-xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-xl flex-shrink-0">
+                💸</div>
+            <div class="min-w-0">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Gastos</p>
+                <p class="text-lg font-bold text-red-600 dark:text-red-400 truncate">{{ totalExpense() | currencyCop }}
+                </p>
+            </div>
+        </div>
+        <!-- Balance -->
+        <div class="f360-card p-5 flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                [class.bg-blue-100]="balance() >= 0" [class.dark:bg-blue-900]="balance() >= 0"
+                [class.bg-red-100]="balance() < 0" [class.dark:bg-red-900]="balance() < 0">
+                {{ balance() >= 0 ? '📈' : '📉' }}
+            </div>
+            <div class="min-w-0">
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Balance</p>
+                <p class="text-lg font-bold truncate" [class.text-blue-600]="balance() >= 0"
+                    [class.dark:text-blue-400]="balance() >= 0" [class.text-red-600]="balance() < 0"
+                    [class.dark:text-red-400]="balance() < 0">
+                    {{ balance() | currencyCop }}
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── FILTROS ────────────────────────────────────────────────────────── -->
+    <section class="f360-card p-4 mb-6 space-y-4">
+        <!-- Fila 1: Mes / Año / Categoría -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Mes -->
+            <div>
+                <label class="f360-label">Mes</label>
+                <select class="f360-select" [ngModel]="selectedMonth()"
+                    (ngModelChange)="selectedMonth.set($event); onFilterChange()">
+                    @for (month of MONTHS; track $index) {
+                    <option [value]="$index">{{ month }}</option>
+                    }
+                </select>
+            </div>
+            <!-- Año -->
+            <div>
+                <label class="f360-label">Año</label>
+                <select class="f360-select" [ngModel]="selectedYear()"
+                    (ngModelChange)="selectedYear.set($event); onFilterChange()">
+                    @for (year of YEARS; track year) {
+                    <option [value]="year">{{ year }}</option>
+                    }
+                </select>
+            </div>
+            <!-- Categoría -->
+            <div class="col-span-2 md:col-span-1">
+                <label class="f360-label">Categoría</label>
+                <select class="f360-select" [ngModel]="selectedCategory()"
+                    (ngModelChange)="selectedCategory.set($event); onFilterChange()">
+                    <option value="">Todas las categorías</option>
+                    @for (cat of ALL_CATEGORIES; track cat) {
+                    <option [value]="cat">{{ getCategoryMeta(cat).icon }} {{ cat }}</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- Fila 2: Tabs Todos / Ingresos / Gastos -->
+        <div class="flex gap-2 flex-wrap">
+            <button type="button" class="px-4 py-2 rounded-lg text-sm font-semibold border transition-colors"
+                [ngClass]="selectedType() === null ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-900 dark:border-gray-500' : ''"
+                [class.bg-white]="selectedType() !== null"
+                [class.dark:bg-gray-800]="selectedType() !== null" [class.text-gray-700]="selectedType() !== null"
+                [class.dark:text-gray-300]="selectedType() !== null" [class.border-gray-300]="selectedType() !== null"
+                [class.dark:border-gray-600]="selectedType() !== null" (click)="selectType(null)">
+                Todos
+            </button>
+            <button type="button" class="px-4 py-2 rounded-lg text-sm font-semibold border transition-colors"
+                [class.bg-emerald-600]="selectedType() === TransactionType.Income"
+                [class.text-white]="selectedType() === TransactionType.Income"
+                [class.border-emerald-600]="selectedType() === TransactionType.Income"
+                [class.bg-white]="selectedType() !== TransactionType.Income"
+                [class.dark:bg-gray-800]="selectedType() !== TransactionType.Income"
+                [class.text-gray-700]="selectedType() !== TransactionType.Income"
+                [class.dark:text-gray-300]="selectedType() !== TransactionType.Income"
+                [class.border-gray-300]="selectedType() !== TransactionType.Income"
+                [class.dark:border-gray-600]="selectedType() !== TransactionType.Income"
+                (click)="selectType(TransactionType.Income)">
+                💰 Ingresos
+            </button>
+            <button type="button" class="px-4 py-2 rounded-lg text-sm font-semibold border transition-colors"
+                [class.bg-red-600]="selectedType() === TransactionType.Expense"
+                [class.text-white]="selectedType() === TransactionType.Expense"
+                [class.border-red-600]="selectedType() === TransactionType.Expense"
+                [class.bg-white]="selectedType() !== TransactionType.Expense"
+                [class.dark:bg-gray-800]="selectedType() !== TransactionType.Expense"
+                [class.text-gray-700]="selectedType() !== TransactionType.Expense"
+                [class.dark:text-gray-300]="selectedType() !== TransactionType.Expense"
+                [class.border-gray-300]="selectedType() !== TransactionType.Expense"
+                [class.dark:border-gray-600]="selectedType() !== TransactionType.Expense"
+                (click)="selectType(TransactionType.Expense)">
+                💸 Gastos
+            </button>
+        </div>
+    </section>
+
+    <!-- ── LISTA ──────────────────────────────────────────────────────────── -->
+    @if (isLoading()) {
+    <section class="f360-card flex items-center justify-center py-16">
+        <span class="w-9 h-9 rounded-full border-4 border-gray-200 border-t-blue-700 animate-spin"></span>
+    </section>
+    } @else if (transactions().length === 0) {
+    <!-- Empty state -->
+    <section class="f360-card text-center py-16">
+        <div class="text-5xl mb-3">🧾</div>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Sin transacciones</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-5">
+            No hay registros para el período y filtros seleccionados.
+        </p>
+        <a routerLink="/transactions/new" class="f360-btn-primary inline-flex">
+            Registrar primera transacción
+        </a>
+    </section>
+    } @else {
+    <section class="space-y-3">
+        @for (tx of transactions(); track tx.id) {
+        <article class="f360-card p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <!-- Ícono categoría -->
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" [ngClass]="tx.type === TransactionType.Income
+                   ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                   : 'bg-red-100 dark:bg-red-900/30'">
+                    {{ getCategoryMeta(tx.category).icon }}
+                </div>
+                <!-- Concepto + cuenta + fecha -->
+                <div class="min-w-0 flex-1">
+                    <p class="font-semibold text-gray-900 dark:text-gray-100 truncate">{{ tx.concept }}</p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <app-bank-logo [slug]="getAccountSlug(tx)" [name]="getAccountName(tx)"
+                            size="sm"></app-bank-logo>
+                        <span class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ getAccountName(tx) }}</span>
+                        <span class="text-gray-600 dark:text-gray-300">·</span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ formatDate(tx.date) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Badge categoría + monto + acciones -->
+            <div class="flex items-center gap-3 flex-shrink-0 pl-13 sm:pl-0">
+                <span class="f360-badge text-xs hidden md:inline-flex" [ngClass]="getCategoryMeta(tx.category).color">
+                    {{ tx.category }}
+                </span>
+                <span class="text-base font-bold font-mono w-32 text-right"
+                    [class.text-emerald-600]="tx.type === TransactionType.Income"
+                    [class.dark:text-emerald-400]="tx.type === TransactionType.Income"
+                    [class.text-red-600]="tx.type === TransactionType.Expense"
+                    [class.dark:text-red-400]="tx.type === TransactionType.Expense">
+                    {{ tx.type === TransactionType.Income ? '+' : '-' }}{{ tx.amount | currencyCop }}
+                </span>
+                <!-- Acciones -->
+                <div class="flex gap-1.5">
+                    <a [routerLink]="getEditRoute(tx)" class="f360-btn-secondary !py-1.5 !px-3 text-sm"
+                        title="Editar">✏️</a>
+                    <button type="button" (click)="delete(tx)" class="f360-btn-danger !py-1.5 !px-3 text-sm"
+                        title="Eliminar">🗑️</button>
+                </div>
+            </div>
+        </article>
+        }
+    </section>
+    }
+</div>
