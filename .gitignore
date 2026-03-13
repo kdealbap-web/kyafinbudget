@@ -51,3 +51,10 @@ Thumbs.db
 #Enviroments
 src/enviroments/enviroment.ts
 src/enviroments/enviroment.prod.ts
+
+
+# Configuración de editor
+.vscode/
+
+# Basura de herramientas
+.codex-diffs*
