@@ -26,11 +26,6 @@ export const routes: Routes = [
           import('./features/auth/callback/auth-callback.component').then(m => m.AuthCallbackComponent),
       },
       {
-        path: 'mfa',
-        loadComponent: () =>
-          import('./features/auth/mfa/mfa.component').then(m => m.MfaComponent),
-      },
-      {
         path: 'reset-password',
         loadComponent: () =>
           import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),

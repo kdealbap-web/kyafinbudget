@@ -53,10 +53,6 @@ export class SettingsComponent {
     }
   }
 
-  goToMfa(): void {
-    void this.router.navigate(['/auth/mfa']);
-  }
-
   async sendPasswordReset(): Promise<void> {
     const email = this.email();
     if (!email) {

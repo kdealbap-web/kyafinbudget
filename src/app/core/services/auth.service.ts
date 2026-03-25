@@ -55,11 +55,10 @@ export class AuthService {
         }
     }
 
-    // LOGIN CON OTP
+    // LOGIN (SIN MFA)
 
     /**
-     * Login paso 1: valida credenciales y envía OTP.
-     * NO crea sesión completa hasta verificar OTP.
+     * Login con usuario y contraseña.
      */
     async signIn(
         email: string,
@@ -68,29 +67,25 @@ export class AuthService {
         this.isLoading.set(true);
         this.errorMessage.set(null);
         try {
-            // Validar que las credenciales son correctas
-            // sin dejar sesión activa
             const { data, error } = await this.supabase.client
                 .auth.signInWithPassword({ email, password });
 
             if (error) throw error;
 
-            void data;
-
-            // Cerrar sesión inmediatamente — la sesión real
-            // se crea solo al verificar el OTP
-            await this.supabase.client.auth.signOut();
-
-            // Enviar OTP de 6 dígitos al correo
-            await this.sendEmailOTP(email);
-
-            // Guardar estado para auth.guard y mfa.component
-            if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem('mfa_email', email);
-                sessionStorage.setItem('mfa_pending', 'true');
+            if (!data.session?.user) {
+                this.errorMessage.set('No se pudo iniciar sesión. Intenta de nuevo.');
+                return false;
             }
 
-            await this.router.navigate(['/auth/mfa']);
+            if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.removeItem('mfa_pending');
+                sessionStorage.removeItem('mfa_email');
+            }
+
+            await this.ensureProfile(data.session.user);
+            await this.supabase.loadUserRole(data.session.user.id);
+
+            await this.router.navigate(['/dashboard']);
             return true;
         } catch (err: unknown) {
             this.errorMessage.set(this.parseError(err));
@@ -99,7 +94,6 @@ export class AuthService {
             this.isLoading.set(false);
         }
     }
-
     /**
      * Envía OTP de 6 dígitos al correo.
      * shouldCreateUser: false → solo usuarios existentes.

@@ -47,8 +47,7 @@ export class LoginComponent {
         this.isLoading.set(true);
         this.errorMessage.set('');
         try {
-            // signIn valida credenciales, cierra sesión, envía OTP,
-            // guarda mfa_email en sessionStorage y navega a /auth/mfa
+            // signIn valida credenciales y crea sesión
             const ok = await this.authService.signIn(
                 this.email().trim(),
                 this.password()
