@@ -12,32 +12,43 @@
     </header>
 
     <!-- ── STATS CARDS ────────────────────────────────────────────────────── -->
-    <section class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div class="f360-card p-4">
             <p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Total</p>
-            <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ statsTotal() }}</p>
+            <p class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{{ statsTotal() }}</p>
         </div>
         <div class="f360-card p-4">
             <p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Activos</p>
-            <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ statsActive() }}</p>
+            <p class="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{{ statsActive() }}</p>
         </div>
         <div class="f360-card p-4">
             <p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Super Admin</p>
-            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ statsByRole()[AppRole.SuperAdmin]
+            <p class="text-xl sm:text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">{{ statsByRole()[AppRole.SuperAdmin]
                 }}</p>
         </div>
         <div class="f360-card p-4">
             <p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">Partner</p>
-            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ statsByRole()[AppRole.Partner] }}</p>
+            <p class="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">{{ statsByRole()[AppRole.Partner] }}</p>
         </div>
     </section>
 
-    <!-- ── BUSCADOR ───────────────────────────────────────────────────────── -->
-    <section class="f360-card p-4 mb-6">
-        <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-            <input type="search" class="f360-input pl-9" placeholder="Buscar por nombre o correo..."
-                [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" name="search" />
+    <!-- ── BUSCADOR ───────────────────────────────────────────────────────── -->    <section class="f360-card p-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="relative sm:col-span-2">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                <input type="search" class="f360-input pl-9" placeholder="Buscar por nombre o correo..."
+                    [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" name="search" />
+            </div>
+
+            <div>
+                <label class="sr-only" for="role-filter">Rol</label>
+                <select id="role-filter" class="f360-select" [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)" name="roleFilter">
+                    <option value="all">Todos los roles</option>
+                    @for (role of allRoles; track role) {
+                    <option [value]="role">{{ getRoleLabel(role) }}</option>
+                    }
+                </select>
+            </div>
         </div>
     </section>
 
@@ -85,22 +96,34 @@
                                     <p class="text-xs text-gray-400 truncate">{{ user.email }}</p>
                                 </div>
                             </div>
-                        </td>
-                        <!-- Rol (selector + badge) -->
+                        </td>`r`n                        <!-- Rol (selector + badge) -->
                         <td class="py-3 px-4">
-                            <div class="flex items-center gap-2">
-                                <span class="f360-badge text-xs" [ngClass]="getRoleBadgeClass(user.role)">
-                                    {{ getRoleLabel(user.role) }}
-                                </span>
-                                <select [id]="'role-' + user.id" [value]="user.role" (change)="changeRole(user, $event)"
-                                    class="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-blue-500">
-                                    @for (role of allRoles; track role) {
-                                    <option [value]="role">{{ getRoleLabel(role) }}</option>
-                                    }
-                                </select>
+                            <div class="flex flex-col gap-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="f360-badge text-xs" [ngClass]="getRoleBadgeClass(user.role)">
+                                        {{ getRoleLabel(user.role) }}
+                                    </span>
+                                    <select [id]="'role-' + user.id" [value]="user.role" (change)="changeRole(user, $event)"
+                                        class="text-xs border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 outline-none focus:ring-2 focus:ring-blue-500">
+                                        @for (role of allRoles; track role) {
+                                        <option [value]="role">{{ getRoleLabel(role) }}</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                @if (user.role === AppRole.Partner) {
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[11px] font-mono text-gray-500 dark:text-gray-400">
+                                        Partner ID: {{ user.partner_id ? (user.partner_id.slice(0, 8) + '…') : '—' }}
+                                    </span>
+                                    <button type="button" class="text-[11px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                                        (click)="openPartnerRoleModal(user)">
+                                        Editar
+                                    </button>
+                                </div>
+                                }
                             </div>
-                        </td>
-                        <!-- Toggle activo/inactivo -->
+                        </td><!-- Toggle activo/inactivo -->
                         <td class="py-3 px-4">
                             <div class="flex items-center gap-2">
                                 <button type="button" [id]="'toggle-' + user.id" (click)="toggleActive(user)"
@@ -154,20 +177,46 @@
                     {{ getRoleLabel(user.role) }}
                 </span>
             </div>
-            <div class="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-gray-800">
-                <select [id]="'role-mobile-' + user.id" [value]="user.role" (change)="changeRole(user, $event)"
-                    class="f360-select !py-1.5 text-xs">
-                    @for (role of allRoles; track role) {
-                    <option [value]="role">{{ getRoleLabel(role) }}</option>
-                    }
-                </select>
-                <button type="button" [id]="'toggle-mobile-' + user.id" (click)="toggleActive(user)"
-                    class="relative inline-flex h-6 w-11 rounded-full transition-colors focus:outline-none"
-                    [class.bg-emerald-500]="user.is_active" [class.bg-gray-200]="!user.is_active"
-                    [class.dark:bg-gray-600]="!user.is_active">
-                    <span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
-                        [class.translate-x-5]="user.is_active" [class.translate-x-0.5]="!user.is_active"></span>
+            @if (user.role === AppRole.Partner) {
+            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span class="font-mono">Partner ID: {{ user.partner_id ? (user.partner_id.slice(0, 8) + '…') : '—' }}</span>
+                <button type="button" class="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400" (click)="openPartnerRoleModal(user)">
+                    Editar
                 </button>
+            </div>
+            }
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div>
+                    <label class="text-[11px] uppercase tracking-wide text-gray-400">Rol</label>
+                    <select [id]="'role-mobile-' + user.id" [value]="user.role" (change)="changeRole(user, $event)"
+                        class="f360-select !py-1.5 text-xs mt-1 w-full">
+                        @for (role of allRoles; track role) {
+                        <option [value]="role">{{ getRoleLabel(role) }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[11px] uppercase tracking-wide text-gray-400">Estado</span>
+                    <div class="mt-2 flex items-center justify-between">
+                        <span class="text-xs font-semibold" [class.text-emerald-600]="user.is_active" [class.dark:text-emerald-400]="user.is_active"
+                            [class.text-gray-400]="!user.is_active">
+                            {{ user.is_active ? 'Activo' : 'Inactivo' }}
+                        </span>
+                        <button type="button" [id]="'toggle-mobile-' + user.id" (click)="toggleActive(user)"
+                            class="relative inline-flex h-6 w-11 rounded-full transition-colors focus:outline-none"
+                            [class.bg-emerald-500]="user.is_active" [class.bg-gray-200]="!user.is_active"
+                            [class.dark:bg-gray-600]="!user.is_active">
+                            <span class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
+                                [class.translate-x-5]="user.is_active" [class.translate-x-0.5]="!user.is_active"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-gray-400">
+                <span>{{ formatDate(user.created_at) }}</span>
+                <span class="font-mono">{{ user.id.slice(0, 8) }}…</span>
             </div>
         </article>
         }
@@ -228,4 +277,45 @@
         </div>
     </div>
     }
+    @if (isPartnerRoleOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" (click)="closePartnerRoleModal()">
+        <div class="w-full max-w-lg f360-card p-6" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">{{ partnerRoleUser()?.role === AppRole.Partner ? 'Editar Partner ID' : 'Convertir a Partner' }}</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {{ partnerRoleUser()?.role === AppRole.Partner ? 'Actualiza el Partner ID de' : 'Define el Partner ID para' }} <span class="font-semibold">{{ partnerRoleUser()?.full_name }}</span>.
+                    </p>
+                </div>
+                <button type="button" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" (click)="closePartnerRoleModal()" aria-label="Cerrar">
+                    ✕
+                </button>
+            </div>
+
+            <div class="mt-5 space-y-3">
+                <div>
+                    <label class="f360-label">Partner ID</label>
+                    <input class="f360-input" type="text" placeholder="UUID del partner" [ngModel]="partnerRolePartnerId()"
+                        (ngModelChange)="partnerRolePartnerId.set($event)" name="partnerRolePartnerId" />
+                    <p class="mt-1 text-xs text-gray-400">
+                        Si tu base de datos lo requiere, ingresa el UUID. Si no, puedes dejarlo vacío.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
+                <button type="button" class="f360-btn-secondary w-full sm:w-auto" (click)="closePartnerRoleModal()" [disabled]="isPartnerRoleSaving()">
+                    Cancelar
+                </button>
+                <button type="button" class="f360-btn-primary w-full sm:w-auto" (click)="savePartnerRole()" [disabled]="isPartnerRoleSaving()">
+                    @if (isPartnerRoleSaving()) {
+                    <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                    }
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+    }
 </div>
+

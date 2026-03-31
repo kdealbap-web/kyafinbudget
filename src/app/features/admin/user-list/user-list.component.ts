@@ -35,6 +35,7 @@ export class UserListComponent implements OnInit {
   // ── Estado ────────────────────────────────────────────────────────────────
   readonly allUsers = signal<Profile[]>([]);
   readonly searchQuery = signal('');
+  readonly roleFilter = signal<AppRole | 'all'>('all');
   readonly isLoading = signal(false);
   // ── Crear usuario (solo superadmin) ───────────────────────────────────────
   readonly isCreateOpen = signal(false);
@@ -43,6 +44,11 @@ export class UserListComponent implements OnInit {
   readonly newUserEmail = signal('');
   readonly newUserRole = signal<AppRole>(AppRole.User);
   readonly newUserPartnerId = signal('');
+  // ── Cambio a Partner (partner_id) ───────────────────────────────────────
+  readonly isPartnerRoleOpen = signal(false);
+  readonly partnerRoleUser = signal<Profile | null>(null);
+  readonly partnerRolePartnerId = signal('');
+  readonly isPartnerRoleSaving = signal(false);
 
   // ── Constantes de UI ──────────────────────────────────────────────────────
   readonly AppRole = AppRole;
@@ -52,12 +58,17 @@ export class UserListComponent implements OnInit {
   // ── Filtro local por búsqueda ─────────────────────────────────────────────
   readonly users = computed(() => {
     const q = this.searchQuery().trim().toLowerCase();
-    if (!q) return this.allUsers();
-    return this.allUsers().filter(u =>
-      u.full_name.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q)
-    );
+    const role = this.roleFilter();
+
+    return this.allUsers().filter(u => {
+      const matchesQuery = !q
+        || u.full_name.toLowerCase().includes(q)
+        || u.email.toLowerCase().includes(q);
+      const matchesRole = role === 'all' || u.role === role;
+      return matchesQuery && matchesRole;
+    });
   });
+
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   readonly statsTotal = computed(() => this.allUsers().length);
@@ -102,8 +113,16 @@ export class UserListComponent implements OnInit {
 
   // ── Cambiar rol ───────────────────────────────────────────────────────────
   async changeRole(user: Profile, event: Event): Promise<void> {
-    const newRole = (event.target as HTMLSelectElement).value as AppRole;
+    const selectEl = event.target as HTMLSelectElement;
+    const newRole = selectEl.value as AppRole;
     if (newRole === user.role) return;
+
+    if (newRole === AppRole.Partner && !user.partner_id) {
+      this.openPartnerRoleModal(user);
+      // Revertir el select hasta que se complete la asignación
+      selectEl.value = user.role;
+      return;
+    }
 
     const confirmed = await this.confirmDialog.confirm({
       title: 'Cambiar rol',
@@ -114,36 +133,34 @@ export class UserListComponent implements OnInit {
     });
 
     if (!confirmed) {
-      // Revertir el select visualmente
-      (event.target as HTMLSelectElement).value = user.role;
+      selectEl.value = user.role;
       return;
     }
 
     this.progressBar.start();
     const old = { ...user };
     try {
-      const { error } = await this.supabase.client
-        .from('profiles')
-        .update({ role: newRole })
-        .eq('id', user.id);
-
-      if (error) throw error;
+      const updated = await this.adminUpdateUser({
+        id: user.id,
+        role: newRole,
+        partner_id: newRole === AppRole.Partner ? (user.partner_id ?? null) : null,
+      });
 
       await this.audit.logAction('UPDATE', 'profiles', user.id,
-        old as unknown as Record<string, unknown>, { role: newRole });
+        old as unknown as Record<string, unknown>, { role: updated.role, partner_id: updated.partner_id });
 
       this.allUsers.update(list =>
-        list.map(u => u.id === user.id ? { ...u, role: newRole } : u)
+        list.map(u => u.id === user.id ? updated : u)
       );
-      this.toast.success(`Rol actualizado a ${getRoleLabel(newRole)}.`);
+      this.toast.success(`Rol actualizado a ${getRoleLabel(updated.role)}.`);
       this.progressBar.complete();
-    } catch {
+    } catch (e: any) {
       this.progressBar.error();
-      this.toast.error('Error al cambiar el rol.');
-      (event.target as HTMLSelectElement).value = user.role;
+      const msg = e?.message ? String(e.message) : '';
+      this.toast.error(msg ? `No se pudo cambiar el rol: ${msg}` : 'Error al cambiar el rol.');
+      selectEl.value = user.role;
     }
   }
-
   // ── Toggle activo/inactivo ────────────────────────────────────────────────
   async toggleActive(user: Profile): Promise<void> {
     const action = user.is_active ? 'desactivar' : 'activar';
@@ -157,26 +174,27 @@ export class UserListComponent implements OnInit {
     if (!confirmed) return;
 
     this.progressBar.start();
+    const old = { ...user };
     try {
-      const { error } = await this.supabase.client
-        .from('profiles')
-        .update({ is_active: !user.is_active })
-        .eq('id', user.id);
+      const updated = await this.adminUpdateUser({
+        id: user.id,
+        is_active: !user.is_active,
+      });
 
-      if (error) throw error;
+      await this.audit.logAction('UPDATE', 'profiles', user.id,
+        old as unknown as Record<string, unknown>, { is_active: updated.is_active });
 
       this.allUsers.update(list =>
-        list.map(u => u.id === user.id ? { ...u, is_active: !u.is_active } : u)
+        list.map(u => u.id === user.id ? updated : u)
       );
-      this.toast.success(user.is_active ? 'Usuario desactivado.' : 'Usuario activado.');
+      this.toast.success(updated.is_active ? 'Usuario activado.' : 'Usuario desactivado.');
       this.progressBar.complete();
-    } catch {
+    } catch (e: any) {
       this.progressBar.error();
-      this.toast.error('Error al cambiar el estado del usuario.');
+      const msg = e?.message ? String(e.message) : '';
+      this.toast.error(msg ? `No se pudo cambiar el estado: ${msg}` : 'Error al cambiar el estado del usuario.');
     }
   }
-
-
   openCreateModal(): void {
     this.newUserFullName.set('');
     this.newUserEmail.set('');
@@ -308,6 +326,97 @@ export class UserListComponent implements OnInit {
     }
   }
 
+  openPartnerRoleModal(user: Profile): void {
+    this.partnerRoleUser.set(user);
+    this.partnerRolePartnerId.set(user.partner_id ?? '');
+    this.isPartnerRoleOpen.set(true);
+  }
+
+  closePartnerRoleModal(): void {
+    this.isPartnerRoleOpen.set(false);
+    this.partnerRoleUser.set(null);
+    this.partnerRolePartnerId.set('');
+  }
+
+  async savePartnerRole(): Promise<void> {
+    const user = this.partnerRoleUser();
+    if (!user) return;
+    if (this.isPartnerRoleSaving()) return;
+
+    const partnerId = this.partnerRolePartnerId().trim();
+    this.isPartnerRoleSaving.set(true);
+    this.progressBar.start();
+    const old = { ...user };
+    try {
+      const isAlreadyPartner = user.role === AppRole.Partner;
+      const updated = await this.adminUpdateUser(
+        isAlreadyPartner
+          ? { id: user.id, partner_id: partnerId || null }
+          : { id: user.id, role: AppRole.Partner, partner_id: partnerId || null }
+      );
+
+      await this.audit.logAction('UPDATE', 'profiles', user.id,
+        old as unknown as Record<string, unknown>,
+        isAlreadyPartner
+          ? { partner_id: updated.partner_id }
+          : { role: updated.role, partner_id: updated.partner_id }
+      );
+
+      this.allUsers.update(list =>
+        list.map(u => u.id === user.id ? updated : u)
+      );
+      this.toast.success(isAlreadyPartner ? 'Partner ID actualizado.' : 'Rol actualizado a Partner.');
+      this.progressBar.complete();
+      this.closePartnerRoleModal();
+    } catch (e: any) {
+      this.progressBar.error();
+      const msg = e?.message ? String(e.message) : '';
+      this.toast.error(msg ? `No se pudo actualizar: ${msg}` : 'No se pudo actualizar el usuario.');
+    } finally {
+      this.isPartnerRoleSaving.set(false);
+    }
+  }
+
+  private isInvalidJwtError(err: any): boolean {
+    const msg = String(err?.message ?? '').toLowerCase();
+    const status = err?.context?.status ?? err?.status;
+    return status === 401 || msg.includes('invalid jwt');
+  }
+
+  private async invokeAdminFunction<T>(name: string, body: Record<string, unknown>): Promise<T> {
+    const { data: sessionData, error: sessionError } = await this.supabase.client.auth.getSession();
+    if (sessionError) throw sessionError;
+    const accessToken = sessionData.session?.access_token ?? '';
+    if (!accessToken) throw new Error('Tu sesión expiró. Inicia sesión de nuevo.');
+
+    const functions = this.supabase.client.functions;
+    functions.setAuth(accessToken);
+
+    const invoke = async (): Promise<T> => {
+      const { data, error } = await functions.invoke(name, { body });
+      if (error) throw error;
+      return data as T;
+    };
+
+    try {
+      return await invoke();
+    } catch (err: any) {
+      if (!this.isInvalidJwtError(err)) throw err;
+      const { data: retrySession, error: retryError } = await this.supabase.client.auth.refreshSession();
+      if (retryError) throw err;
+      const retryToken = retrySession.session?.access_token ?? '';
+      if (!retryToken) throw err;
+      functions.setAuth(retryToken);
+      return await invoke();
+    }
+  }
+
+  private async adminUpdateUser(payload: { id: string; role?: AppRole; partner_id?: string | null; is_active?: boolean }): Promise<Profile> {
+    const data = await this.invokeAdminFunction<{ profile?: Profile }>('admin-update-user', payload);
+    const profile = (data as { profile?: Profile } | null)?.profile;
+    if (!profile) throw new Error('Respuesta inválida del servidor.');
+    return profile;
+  }
   // ── Helpers de UI ─────────────────────────────────────────────────────────
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
@@ -336,5 +445,4 @@ export class UserListComponent implements OnInit {
     return new Date(dateStr).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 }
-
 
