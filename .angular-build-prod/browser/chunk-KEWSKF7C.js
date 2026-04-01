@@ -1,0 +1,1 @@
+import{I as t}from"./chunk-RM7DIVAO.js";var e=class r{bar;register(o){this.bar=o}start(){this.bar?.start()}complete(){this.bar?.complete()}error(){this.bar?.error()}static \u0275fac=function(a){return new(a||r)};static \u0275prov=t({token:r,factory:r.\u0275fac,providedIn:"root"})};export{e as a};

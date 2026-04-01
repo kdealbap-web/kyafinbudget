@@ -1,0 +1,1 @@
+var n=(t=>(t.Income="income",t.Expense="expense",t))(n||{}),r=(e=>(e.Rent="Arriendo",e.Utilities="Servicios",e.Food="Alimentaci\xF3n",e.Transport="Transporte",e.Health="Salud",e.Entertainment="Entretenimiento",e.Education="Educaci\xF3n",e.Other="Otros",e))(r||{});var o=Object.values(r);export{n as a};

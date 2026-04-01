@@ -1,0 +1,12 @@
+﻿{
+  "name": "K&A Fin Budget",
+  "short_name": "K&A Fin Budget",
+  "icons": [
+    { "src": "android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#1E40AF",
+  "background_color": "#F8FAFC",
+  "display": "standalone"
+}
+

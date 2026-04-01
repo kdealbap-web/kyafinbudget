@@ -1,6 +1,17 @@
-# K & A Dev Fin
+﻿# K & A Dev Fin
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+
+
+## Wedding (Gastos de Boda)
+
+- Ruta: `/wedding`
+- Flujo: crear presupuesto → crear gastos → registrar pagos (el pago crea transacción en `transactions`)
+- Adjuntos: se registran en `wedding_expense_attachments` y se suben a Supabase Storage (bucket por defecto: `receipts`)
+- Reporte: botón `⬇️ CSV` descarga el presupuesto actual
+
+Notas:
+- El bucket de adjuntos se puede cambiar en `src/app/core/services/wedding-expense.service.ts` (propiedad `attachmentsBucket`).
 
 ## Development server
 

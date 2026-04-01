@@ -135,6 +135,13 @@ export const routes: Routes = [
         ],
       },
 
+
+      // ── Boda ─────────────────────────────
+      {
+        path: 'wedding',
+        loadChildren: () =>
+          import('./features/wedding/wedding.routes').then(m => m.WEDDING_ROUTES),
+      },
       // ── Deudas ─────────────────────────────
       {
         path: 'debts',
@@ -188,3 +195,4 @@ export const routes: Routes = [
 
   { path: '**', redirectTo: 'dashboard' },
 ];
+

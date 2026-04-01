@@ -1,0 +1,1 @@
+import{La as t}from"./chunk-RM7DIVAO.js";var i=class n{transform(r){if(r==null||isNaN(r))return"$ 0";let e=Math.abs(r).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,".");return r<0?`- $ ${e}`:`$ ${e}`}static \u0275fac=function(e){return new(e||n)};static \u0275pipe=t({name:"currencyCop",type:n,pure:!0})};export{i as a};

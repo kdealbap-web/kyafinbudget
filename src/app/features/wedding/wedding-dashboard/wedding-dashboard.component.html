@@ -1,0 +1,646 @@
+﻿<div class="dark:bg-gray-950 bg-gray-50 min-h-screen p-4 md:p-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="f360-page-header mb-8">
+      <div class="min-w-0">
+        <h1 class="f360-page-title flex items-center gap-2">
+          <span aria-hidden="true">💍</span>
+          <span class="truncate">Gastos de Boda</span>
+        </h1>
+        <p class="f360-page-subtitle">Presupuesto, proveedores y pagos en un solo lugar</p>
+
+        @if (currentBudget()) {
+          <div class="flex flex-wrap items-center gap-2 mt-3">
+            <span
+              class="f360-badge"
+              [ngClass]="{
+                'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200': currentBudget()!.status === 'planning',
+                'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200': currentBudget()!.status === 'in_progress',
+                'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200': currentBudget()!.status === 'completed',
+                'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200': currentBudget()!.status === 'cancelled'
+              }"
+            >
+              <span class="text-xs">●</span>
+              @if (currentBudget()!.status === 'planning') {
+                Planificación
+              } @else if (currentBudget()!.status === 'in_progress') {
+                En progreso
+              } @else if (currentBudget()!.status === 'completed') {
+                Completado
+              } @else {
+                Cancelado
+              }
+            </span>
+
+            <span class="f360-badge bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
+              📅 {{ currentBudget()!.event_date | date: 'yyyy-MM-dd' }}
+            </span>
+
+            <span class="f360-badge bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-200">
+              ✅ Disponible: {{ budgetTotals().remaining | currencyCop }}
+            </span>
+
+            <span class="f360-badge bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-200">
+              ⏳ Pendiente: {{ budgetTotals().pending | currencyCop }}
+            </span>
+          </div>
+        } @else {
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">
+            Crea o selecciona un presupuesto para habilitar gastos y pagos.
+          </p>
+        }
+      </div>
+
+      <div class="w-full sm:w-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button type="button" class="f360-btn-secondary w-full" (click)="openBudgetForm()">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Nuevo presupuesto
+          </button>
+
+          <button
+            type="button"
+            class="f360-btn-primary w-full"
+            (click)="openExpenseForm()"
+            [disabled]="!currentBudget()"
+            [attr.title]="!currentBudget() ? 'Primero selecciona o crea un presupuesto' : 'Registrar un gasto'"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3h10l2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
+              <path d="M9 9h6M9 13h6M9 17h4"/>
+            </svg>
+            Nuevo gasto
+          </button>
+
+          <button
+            type="button"
+            class="f360-btn-secondary w-full"
+            (click)="downloadReport()"
+            [disabled]="!currentBudget() || !expenses().length"
+            [attr.title]="!currentBudget() ? 'Selecciona un presupuesto' : (!expenses().length ? 'Aún no hay gastos para exportar' : 'Descargar reporte CSV')"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12"/>
+              <path d="M8 11l4 4 4-4"/>
+              <path d="M5 21h14"/>
+            </svg>
+            Exportar CSV
+          </button>
+        </div>
+
+        @if (!currentBudget()) {
+          <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            Tip: crea el presupuesto y luego registra los gastos (ítems) y pagos.
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="f360-card border border-red-200 dark:border-red-900/40 mb-6">
+        <p class="text-red-700 dark:text-red-300">{{ error() }}</p>
+      </div>
+    }
+
+    <!-- Selector de presupuesto -->
+    <div class="f360-card mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div class="md:col-span-2">
+          <label class="f360-label">Presupuesto</label>
+          <select
+            #budgetSelect
+            class="f360-select"
+            [value]="currentBudget()?.id ?? ''"
+            (change)="selectBudget(budgetSelect.value)"
+          >
+            <option value="" disabled>Selecciona un presupuesto</option>
+            @for (b of budgets(); track b.id) {
+              <option [value]="b.id">{{ b.event_name }} — {{ b.event_date | date: 'yyyy-MM-dd' }}</option>
+            }
+          </select>
+        </div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          @if (isLoading()) {
+            <span>Cargando...</span>
+          } @else {
+            <span>{{ budgets().length }} presupuesto(s)</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Form crear presupuesto -->
+    @if (showBudgetForm()) {
+      <div class="f360-card mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-lg">Crear presupuesto</h2>
+          <button type="button" class="f360-btn-secondary" (click)="closeBudgetForm()">Cerrar</button>
+        </div>
+
+        <form [formGroup]="budgetForm" (ngSubmit)="submitBudget()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="f360-label">Nombre del evento</label>
+            <input class="f360-input" type="text" formControlName="event_name" />
+            @if (budgetForm.controls.event_name.invalid && (budgetForm.controls.event_name.touched || budgetForm.controls.event_name.dirty)) {
+              <span class="f360-error">Nombre requerido</span>
+            }
+          </div>
+
+          <div>
+            <label class="f360-label">Fecha</label>
+            <div class="relative">
+  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">📅</span>
+  <input class="f360-input pl-10" type="date" formControlName="event_date" />
+</div>
+            @if (budgetForm.controls.event_date.invalid && (budgetForm.controls.event_date.touched || budgetForm.controls.event_date.dirty)) {
+              <span class="f360-error">Fecha requerida</span>
+            }
+          </div>
+
+          <div>
+            <label class="f360-label">Presupuesto total (COP)</label>
+            <input class="f360-input" type="number" formControlName="total_budget" />
+@if (budgetForm.controls.total_budget.value) {
+  <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+    Formato: {{ budgetForm.controls.total_budget.value | currencyCop }}
+  </p>
+}
+            @if (budgetForm.controls.total_budget.invalid && (budgetForm.controls.total_budget.touched || budgetForm.controls.total_budget.dirty)) {
+              <span class="f360-error">Monto mínimo: 100.000</span>
+            }
+          </div>
+
+          <div>
+            <label class="f360-label">Estado</label>
+            <select class="f360-select" formControlName="status">
+              <option [ngValue]="WeddingBudgetStatus.Planning">Planificación</option>
+              <option [ngValue]="WeddingBudgetStatus.InProgress">En progreso</option>
+              <option [ngValue]="WeddingBudgetStatus.Completed">Completado</option>
+              <option [ngValue]="WeddingBudgetStatus.Cancelled">Cancelado</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="f360-label">Notas (opcional)</label>
+            <textarea class="f360-textarea" rows="3" formControlName="notes"></textarea>
+          </div>
+
+          <div class="md:col-span-2 flex gap-3">
+            <button type="submit" class="f360-btn-primary" [disabled]="isLoading()">Guardar</button>
+            <button type="button" class="f360-btn-secondary" (click)="closeBudgetForm()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Form crear gasto -->
+    @if (showExpenseForm()) {
+      <div class="f360-card mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-lg">{{ editingExpenseId() ? 'Editar gasto' : 'Nuevo gasto' }}</h2>
+          <button type="button" class="f360-btn-secondary" (click)="closeExpenseForm()">Cerrar</button>
+        </div>
+
+        <form [formGroup]="expenseForm" (ngSubmit)="submitExpense()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="f360-label">Categoría</label>
+            <select class="f360-select" formControlName="category_id">
+              <option value="" disabled>Selecciona una categoría</option>
+              @for (cat of categories(); track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+            @if (expenseForm.controls.category_id.invalid && (expenseForm.controls.category_id.touched || expenseForm.controls.category_id.dirty)) {
+              <span class="f360-error">Categoría requerida</span>
+            }
+          </div>
+
+          <div>
+            <label class="f360-label">Proveedor</label>
+            <input class="f360-input" type="text" formControlName="provider_name" placeholder="Ej: Fotógrafo" />
+            @if (expenseForm.controls.provider_name.invalid && (expenseForm.controls.provider_name.touched || expenseForm.controls.provider_name.dirty)) {
+              <span class="f360-error">Proveedor requerido</span>
+            }
+          </div>
+
+          <div>
+            <label class="f360-label">Monto (COP)</label>
+            <input class="f360-input" type="number" formControlName="amount" />
+            @if (expenseForm.controls.amount.value) {
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Formato: {{ expenseForm.controls.amount.value | currencyCop }}
+              </p>
+            }
+            @if (expenseForm.controls.amount.invalid && (expenseForm.controls.amount.touched || expenseForm.controls.amount.dirty)) {
+              <span class="f360-error">Monto inválido</span>
+            }
+          </div>
+
+          <div>
+            <label class="f360-label">Vencimiento (opcional)</label>
+            <div class="relative">
+  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">📅</span>
+  <input class="f360-input pl-10" type="date" formControlName="due_date" />
+</div>
+          </div>
+
+          <div>
+            <label class="f360-label">Cuenta sugerida (opcional)</label>
+            <select class="f360-select" formControlName="account_id">
+              <option [ngValue]="null">Sin cuenta</option>
+              @for (a of accounts(); track a.id) {
+                <option [ngValue]="a.id">{{ a.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="f360-label">Descripción (opcional)</label>
+            <input class="f360-input" type="text" formControlName="description" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="f360-label">Notas (opcional)</label>
+            <textarea class="f360-textarea" rows="3" formControlName="notes"></textarea>
+          </div>
+
+          <div class="md:col-span-2 flex gap-3">
+            <button type="submit" class="f360-btn-primary" [disabled]="isLoading()">Guardar gasto</button>
+            <button type="button" class="f360-btn-secondary" (click)="closeExpenseForm()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Form registrar pago -->
+    @if (showPaymentForm() && selectedExpenseForPayment()) {
+      <div class="f360-card mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="font-bold text-lg">Registrar pago</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              {{ selectedExpenseForPayment()!.provider_name }} — Pendiente: {{ selectedExpenseForPayment()!.remaining | currencyCop }}
+            </p>
+          </div>
+          <button type="button" class="f360-btn-secondary" (click)="closePaymentForm()">Cerrar</button>
+        </div>
+
+        <form [formGroup]="paymentForm" (ngSubmit)="submitPayment()" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="f360-label">Monto a pagar (COP)</label>
+            <input class="f360-input" type="number" formControlName="amount" />
+            @if (paymentForm.controls.amount.value) {
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Formato: {{ paymentForm.controls.amount.value | currencyCop }}
+              </p>
+            }
+            @if (paymentForm.controls.amount.invalid && (paymentForm.controls.amount.touched || paymentForm.controls.amount.dirty)) {
+              <span class="f360-error">Monto inválido</span>
+            }
+          </div>
+
+          <div>
+            <label class="f360-label">Fecha de pago</label>
+            <div class="relative">
+  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">📅</span>
+  <input class="f360-input pl-10" type="date" formControlName="payment_date" />
+</div>
+          </div>
+
+          <div>
+            <label class="f360-label">Método</label>
+            <select class="f360-select" formControlName="payment_method">
+              <option [ngValue]="WeddingExpensePaymentMethod.Cash">Efectivo</option>
+              <option [ngValue]="WeddingExpensePaymentMethod.Transfer">Transferencia</option>
+              <option [ngValue]="WeddingExpensePaymentMethod.Card">Tarjeta</option>
+              <option [ngValue]="WeddingExpensePaymentMethod.Check">Cheque</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="f360-label">Cuenta (para impactar saldo)</label>
+            <select class="f360-select" formControlName="account_id">
+              <option value="" disabled>Selecciona una cuenta</option>
+              @for (a of accounts(); track a.id) {
+                <option [value]="a.id">{{ a.name }}</option>
+              }
+            </select>
+            @if (paymentForm.controls.account_id.invalid && (paymentForm.controls.account_id.touched || paymentForm.controls.account_id.dirty)) {
+              <span class="f360-error">Cuenta requerida</span>
+            }
+          </div>
+
+          <div>
+            <label class="f360-label">Portafolio (para dashboard)</label>
+            <select class="f360-select" formControlName="portfolio_id">
+              <option [ngValue]="null">Sin portafolio</option>
+              @for (p of portfolios(); track p.id) {
+                <option [ngValue]="p.id">{{ p.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="f360-label">Referencia (opcional)</label>
+            <input class="f360-input" type="text" formControlName="reference_number" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="f360-label">Notas (opcional)</label>
+            <textarea class="f360-textarea" rows="3" formControlName="notes"></textarea>
+          </div>
+
+          <div class="md:col-span-2 flex gap-3">
+            <button type="submit" class="f360-btn-primary" [disabled]="isLoading()">Registrar pago</button>
+            <button type="button" class="f360-btn-secondary" (click)="closePaymentForm()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    }
+
+
+    <!-- Detalle de gasto / historial de pagos -->
+    @if (selectedExpenseDetails()) {
+      <div class="f360-card mb-6">
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h2 class="font-bold text-lg">{{ selectedExpenseDetails()!.provider_name }}</h2>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="px-2 py-1 rounded text-xs font-semibold" [class]="getExpenseStatusClass(selectedExpenseDetails()!.status)">
+                {{ selectedExpenseDetails()!.status }}
+              </span>
+              <span class="text-sm text-gray-600 dark:text-gray-400">{{ selectedExpenseDetails()!.category?.name ?? '—' }}</span>
+            </div>
+          </div>
+          <button type="button" class="f360-btn-secondary" (click)="closeDetails()">Cerrar</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div>
+            <p class="text-xs text-gray-600 dark:text-gray-400">Monto</p>
+            <p class="font-bold">{{ selectedExpenseDetails()!.amount | currencyCop }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-600 dark:text-gray-400">Pagado</p>
+            <p class="font-bold text-emerald-600">{{ selectedExpenseDetails()!.paid_amount | currencyCop }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-600 dark:text-gray-400">Pendiente</p>
+            <p class="font-bold text-amber-600">{{ selectedExpenseDetails()!.remaining | currencyCop }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-600 dark:text-gray-400">Cuenta</p>
+            <p class="font-bold">{{ getAccountName(selectedExpenseDetails()!.account_id) }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Pagos registrados: {{ getPaymentsCount(selectedExpenseDetails()!) }}. Al registrar un pago se crea una transacción en el módulo de Transacciones.
+          </p>
+          <button
+            type="button"
+            class="f360-btn-primary"
+            (click)="openPaymentFor(selectedExpenseDetails()!)"
+            [disabled]="selectedExpenseDetails()!.status === 'paid' || selectedExpenseDetails()!.status === 'cancelled'"
+          >
+            + Pago
+          </button>
+        </div>
+
+        @if (!selectedExpenseDetails()!.payments?.length) {
+          <p class="text-gray-600 dark:text-gray-400">Aún no hay pagos registrados para este gasto.</p>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead>
+                <tr class="text-left text-gray-600 dark:text-gray-400 border-b dark:border-gray-800">
+                  <th class="py-2 pr-4">Fecha</th>
+                  <th class="py-2 pr-4">Método</th>
+                  <th class="py-2 pr-4">Monto</th>
+                  <th class="py-2 pr-4">Referencia</th>
+                  <th class="py-2">Notas</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of selectedExpenseDetails()!.payments!; track p.id) {
+                  <tr class="border-b dark:border-gray-800">
+                    <td class="py-2 pr-4">{{ p.payment_date | date:'yyyy-MM-dd' }}</td>
+                    <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ p.payment_method }}</td>
+                    <td class="py-2 pr-4 font-semibold">{{ p.amount | currencyCop }}</td>
+                    <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ p.reference_number ?? '—' }}</td>
+                    <td class="py-2 text-gray-700 dark:text-gray-300">{{ p.notes ?? '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+        <!-- Adjuntos -->
+        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <h3 class="font-semibold text-gray-900 dark:text-gray-100">Documentos</h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">Cotizaciones, contratos, facturas y recibos del proveedor.</p>
+            </div>
+          </div>
+
+          <form [formGroup]="attachmentForm" (ngSubmit)="uploadAttachment()" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <div>
+              <label class="f360-label">Tipo</label>
+              <select class="f360-select" formControlName="attachment_type">
+                <option [ngValue]="WeddingExpenseAttachmentType.Quote">Cotización</option>
+                <option [ngValue]="WeddingExpenseAttachmentType.Contract">Contrato</option>
+                <option [ngValue]="WeddingExpenseAttachmentType.Invoice">Factura</option>
+                <option [ngValue]="WeddingExpenseAttachmentType.Receipt">Recibo</option>
+                <option [ngValue]="WeddingExpenseAttachmentType.Other">Otro</option>
+              </select>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="f360-label">Archivo</label>
+              <input class="f360-input" type="file" (change)="onAttachmentFileChange($event)" accept="image/*,.pdf" />
+              @if (selectedAttachmentFile()) {
+                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  Seleccionado: {{ selectedAttachmentFile()!.name }} ({{ formatFileSize(selectedAttachmentFile()!.size) }})
+                </p>
+              }
+            </div>
+
+            <div class="md:col-span-3 flex gap-3">
+              <button type="submit" class="f360-btn-primary" [disabled]="isLoading() || !selectedAttachmentFile()">
+                Subir adjunto
+              </button>
+              <button type="button" class="f360-btn-secondary" (click)="selectedAttachmentFile.set(null)">
+                Limpiar
+              </button>
+            </div>
+          </form>
+
+          @if (!selectedExpenseDetails()!.attachments?.length) {
+            <p class="text-gray-600 dark:text-gray-400">Aún no hay adjuntos para este gasto.</p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-sm">
+                <thead>
+                  <tr class="text-left text-gray-600 dark:text-gray-400 border-b dark:border-gray-800">
+                    <th class="py-2 pr-4">Archivo</th>
+                    <th class="py-2 pr-4">Tipo</th>
+                    <th class="py-2 pr-4">Tamaño</th>
+                    <th class="py-2">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (a of selectedExpenseDetails()!.attachments!; track a.id) {
+                    <tr class="border-b dark:border-gray-800">
+                      <td class="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{{ a.file_name }}</td>
+                      <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ getAttachmentTypeLabel(a.attachment_type) }}</td>
+                      <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ formatFileSize(a.file_size) }}</td>
+                      <td class="py-2">
+                        <div class="flex gap-2 flex-wrap">
+                          <a class="f360-btn-secondary" [href]="getAttachmentUrl(a)" target="_blank" rel="noopener">Abrir</a>
+                          <button type="button" class="f360-btn-secondary" (click)="deleteAttachment(a)">Eliminar</button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+
+      </div>
+    }
+
+    <!-- Resumen -->
+    @if (currentBudget()) {
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="f360-card">
+          <p class="text-sm text-gray-600 dark:text-gray-400">Presupuesto</p>
+          <p class="text-xl font-bold">{{ budgetTotals().totalBudget | currencyCop }}</p>
+        </div>
+        <div class="f360-card">
+          <p class="text-sm text-gray-600 dark:text-gray-400">Gastado</p>
+          <p class="text-xl font-bold text-emerald-600">{{ budgetTotals().spent | currencyCop }}</p>
+        </div>
+        <div class="f360-card">
+          <p class="text-sm text-gray-600 dark:text-gray-400">Pendiente</p>
+          <p class="text-xl font-bold text-amber-600">{{ budgetTotals().pending | currencyCop }}</p>
+        </div>
+        <div class="f360-card">
+          <p class="text-sm text-gray-600 dark:text-gray-400">Disponible</p>
+          <p class="text-xl font-bold">{{ budgetTotals().remaining | currencyCop }}</p>
+        </div>
+      </div>
+
+      <div class="f360-card mb-6">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-sm text-gray-600 dark:text-gray-400">Progreso</p>
+          <p class="text-sm font-semibold">{{ spendingPercent() }}%</p>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3">
+          <div
+            class="bg-emerald-500 h-3 rounded-full transition-all"
+            [style.width.%]="spendingPercent()"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Lista de gastos -->
+      <div class="f360-card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-lg">Gastos</h2>
+          <span class="text-sm text-gray-600 dark:text-gray-400">{{ expenses().length }} item(s)</span>
+        </div>
+
+        @if (!expenses().length) {
+          <p class="text-gray-600 dark:text-gray-400">Aún no tienes gastos en este presupuesto.</p>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead>
+                <tr class="text-left text-gray-600 dark:text-gray-400 border-b dark:border-gray-800">
+                  <th class="py-3 pr-4">Proveedor</th>
+                  <th class="py-3 pr-4">Categoría</th>
+                  <th class="py-3 pr-4">Monto</th>
+                  <th class="py-3 pr-4">Pagado</th>
+                  <th class="py-3 pr-4">Pendiente</th>
+                  <th class="py-3 pr-4">Cuenta</th>
+                  <th class="py-3 pr-4">Vence</th>
+                  <th class="py-3 pr-4">Estado</th>
+                  <th class="py-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of expenses(); track e.id) {
+                  <tr class="border-b dark:border-gray-800">
+                    <td class="py-3 pr-4">
+  <div class="font-medium text-gray-900 dark:text-gray-100">{{ e.provider_name }}</div>
+  @if (e.description) {
+    <div class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ e.description }}</div>
+  }
+  <div class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{{ getPaymentsCount(e) }} pago(s)</div>
+</td>
+                    <td class="py-3 pr-4 text-gray-700 dark:text-gray-300">{{ e.category?.name ?? '—' }}</td>
+                    <td class="py-3 pr-4">{{ e.amount | currencyCop }}</td>
+                    <td class="py-3 pr-4">{{ e.paid_amount | currencyCop }}</td>
+                    <td class="py-3 pr-4">{{ e.remaining | currencyCop }}</td>
+                    <td class="py-3 pr-4 text-gray-700 dark:text-gray-300">{{ getAccountName(e.account_id) }}</td>
+                    <td class="py-3 pr-4 text-gray-700 dark:text-gray-300">{{ e.due_date ? (e.due_date | date:'yyyy-MM-dd') : '—' }}</td>
+                    <td class="py-3 pr-4">
+                      <span class="px-2 py-1 rounded text-xs font-semibold" [class]="getExpenseStatusClass(e.status)">
+                        {{ e.status }}
+                      </span>
+                    </td>
+                    <td class="py-3">
+                      <div class="flex gap-2 flex-wrap">
+                        <button type="button" class="f360-btn-secondary" (click)="openDetails(e)">
+                          Detalles
+                        </button>
+                        <button
+                          type="button"
+                          class="f360-btn-secondary"
+                          (click)="openEditExpense(e)"
+                          [disabled]="e.status === 'cancelled'"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          class="f360-btn-secondary"
+                          (click)="openPaymentFor(e)"
+                          [disabled]="e.status === 'paid' || e.status === 'cancelled'"
+                        >
+                          Pagar
+                        </button>
+                        <button
+                          type="button"
+                          class="f360-btn-secondary"
+                          (click)="cancelExpense(e)"
+                          [disabled]="e.status === 'paid' || e.status === 'cancelled'"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="f360-card text-center py-12">
+        <p class="text-gray-600 dark:text-gray-400 mb-4">No hay presupuesto seleccionado.</p>
+        <button type="button" class="f360-btn-primary" (click)="openBudgetForm()">Crear presupuesto</button>
+      </div>
+    }
+  </div>
+</div>
+
+
+
+

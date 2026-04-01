@@ -79,7 +79,27 @@
       }
     </button>
 
-    <!-- Notificaciones -->
+
+    <!-- Acceso rápido: Boda -->
+    <a
+      routerLink="/wedding"
+      class="relative w-9 h-9 flex items-center justify-center rounded-xl
+             text-gray-500 hover:text-gray-900 hover:bg-gray-100
+             dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/80
+             transition-all duration-150"
+      aria-label="Gastos de boda"
+      title="Gastos de Boda"
+    >
+      <span class="text-[18px]">💍</span>
+      @if (weddingPendingCount() > 0) {
+        <span
+          class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold
+                 rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center"
+        >
+          {{ weddingPendingCount() }}
+        </span>
+      }
+    </a>   <!-- Notificaciones -->
     <button
       type="button"
       class="relative w-9 h-9 flex items-center justify-center rounded-xl
@@ -201,3 +221,4 @@
 
   </div>
 </header>
+

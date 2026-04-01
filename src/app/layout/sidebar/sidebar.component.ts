@@ -199,6 +199,7 @@ export class SidebarComponent implements OnInit {
     { path: '/accounts',  label: 'Mis Cuentas',       icon: 'accounts' },
     { path: '/scheduled', label: 'Pagos Programados', icon: 'scheduled' },
     { path: '/debts',     label: 'Mis Deudas',        icon: 'debts' },
+    { path: '/wedding',   label: 'Matrimonio',      icon: 'wedding' },
     { path: '/import',    label: 'Importar Excel',    icon: 'import' },
   ]);
 
@@ -208,11 +209,11 @@ export class SidebarComponent implements OnInit {
   ]);
 
   bottomNavItems = signal<NavItem[]>([
-    { path: '/dashboard',    label: 'Inicio',    icon: 'dashboard' },
-    { path: '/transactions', label: 'Gastos',    icon: 'transactions' },
-    { path: '/accounts',     label: 'Cuentas',   icon: 'accounts' },
-    { path: '/scheduled',    label: 'Pagos',     icon: 'scheduled' },
-    { path: '/debts',        label: 'Deudas',    icon: 'debts' },
+    { path: '/dashboard',    label: 'Inicio',   icon: 'dashboard' },
+    { path: '/transactions', label: 'Gastos',   icon: 'transactions' },
+    { path: '/wedding',      label: 'Boda',     icon: 'wedding' },
+    { path: '/accounts',     label: 'Cuentas',  icon: 'accounts' },
+    { path: '/scheduled',    label: 'Pagos',    icon: 'scheduled' },
   ]);
 
   async ngOnInit(): Promise<void> {
@@ -234,7 +235,7 @@ export class SidebarComponent implements OnInit {
 
   canAccess(path: string): boolean {
     if (path.startsWith('/admin/')) return this.isAdmin();
-    if (['/import', '/scheduled', '/debts'].includes(path)) return this.canSeeFinance();
+    if (['/import', '/scheduled', '/debts', '/wedding'].includes(path)) return this.canSeeFinance();
     return true;
   }
 
@@ -251,3 +252,4 @@ export class SidebarComponent implements OnInit {
     await this.authService.signOut();
   }
 }
+

@@ -1,0 +1,1 @@
+import{I as r}from"./chunk-RM7DIVAO.js";var e=class i{dialog;register(o){this.dialog=o}confirm(o){return this.dialog?this.dialog.open(o):(console.warn("[ConfirmDialogService] No hay di\xE1logo registrado."),Promise.resolve(!1))}static \u0275fac=function(n){return new(n||i)};static \u0275prov=r({token:i,factory:i.\u0275fac,providedIn:"root"})};export{e as a};

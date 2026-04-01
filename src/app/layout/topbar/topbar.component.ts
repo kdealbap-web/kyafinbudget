@@ -1,6 +1,15 @@
 ﻿import { DOCUMENT } from '@angular/common';
-import { Component, EventEmitter, HostListener, OnInit, Output, computed, inject, signal } from '@angular/core';
-import { Router, NavigationEnd, RouterModule } from '@angular/router';
+import {
+  Component,
+  EventEmitter,
+  HostListener,
+  OnInit,
+  Output,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs/operators';
 import { SupabaseService } from '../../core/services/supabase.service';
@@ -14,6 +23,7 @@ const ROUTE_NAMES: Record<string, string> = {
   '/scheduled': 'Pagos Programados',
   '/scheduled/new': 'Nuevo Pago',
   '/debts': 'Mis Deudas',
+  '/wedding': 'Gastos de Boda',
   '/import': 'Importar Excel',
   '/admin/users': 'Usuarios',
   '/admin/audit': 'Auditoría',
@@ -37,7 +47,8 @@ export class TopbarComponent implements OnInit {
 
   readonly isDark = signal(false);
   readonly showUserMenu = signal(false);
-  readonly notificationCount = signal(0);
+  readonly notificationCount = signal<number>(0);
+  readonly weddingPendingCount = signal<number>(0);
 
   readonly userProfile = computed(() => this.supabase.userProfile());
 
@@ -56,7 +67,7 @@ export class TopbarComponent implements OnInit {
     if (exact) return exact;
     // Buscar prefijo más largo
     const match = Object.keys(ROUTE_NAMES)
-      .filter(k => url.startsWith(k))
+      .filter((k) => url.startsWith(k))
       .sort((a, b) => b.length - a.length)[0];
     if (match) return ROUTE_NAMES[match];
     // Fallback: capitalizar último segmento
@@ -76,24 +87,27 @@ export class TopbarComponent implements OnInit {
   });
 
   readonly userInitial = computed(() =>
-    (this.userProfile()?.full_name?.charAt(0) ?? 'U').toUpperCase()
+    (this.userProfile()?.full_name?.charAt(0) ?? 'U').toUpperCase(),
   );
 
   ngOnInit(): void {
-    if (typeof localStorage === 'undefined' || typeof window === 'undefined') return;
-
-    const saved = localStorage.getItem('f360-theme') ?? localStorage.getItem('theme');
-    if (saved === 'dark') {
-      this.isDark.set(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      this.isDark.set(false);
-      document.documentElement.classList.remove('dark');
+    if (typeof localStorage !== 'undefined' && typeof window !== 'undefined') {
+      const saved =
+        localStorage.getItem('f360-theme') ?? localStorage.getItem('theme');
+      if (saved === 'dark') {
+        this.isDark.set(true);
+        document.documentElement.classList.add('dark');
+      } else {
+        this.isDark.set(false);
+        document.documentElement.classList.remove('dark');
+      }
     }
+
+    void this.loadWeddingPendingCount();
   }
 
   toggleTheme(): void {
-    this.isDark.update(v => !v);
+    this.isDark.update((v) => !v);
     this.applyTheme();
   }
 
@@ -115,7 +129,7 @@ export class TopbarComponent implements OnInit {
   }
 
   toggleUserMenu(): void {
-    this.showUserMenu.update(v => !v);
+    this.showUserMenu.update((v) => !v);
   }
 
   @HostListener('document:click', ['$event'])
@@ -125,6 +139,43 @@ export class TopbarComponent implements OnInit {
       this.showUserMenu()
     ) {
       this.showUserMenu.set(false);
+    }
+  }
+
+  private async loadWeddingPendingCount(): Promise<void> {
+    const userId = this.supabase.currentUser()?.id;
+    if (!userId) {
+      this.weddingPendingCount.set(0);
+      return;
+    }
+
+    try {
+      const { data: budgets, error: budgetError } = await this.supabase.client
+        .from('wedding_budgets')
+        .select('id, status, event_date')
+        .in('status', ['planning', 'in_progress'])
+        .order('event_date', { ascending: true })
+        .limit(1);
+
+      if (budgetError) throw budgetError;
+
+      const activeBudget = (budgets ?? [])[0] as { id: string } | undefined;
+      if (!activeBudget?.id) {
+        this.weddingPendingCount.set(0);
+        return;
+      }
+
+      const { count, error: expenseError } = await this.supabase.client
+        .from('wedding_expenses')
+        .select('id', { count: 'exact', head: true })
+        .eq('wedding_budget_id', activeBudget.id)
+        .in('status', ['pending', 'partial']);
+
+      if (expenseError) throw expenseError;
+      this.weddingPendingCount.set(count ?? 0);
+    } catch (err) {
+      console.error('Error cargando pendientes de boda:', err);
+      this.weddingPendingCount.set(0);
     }
   }
 

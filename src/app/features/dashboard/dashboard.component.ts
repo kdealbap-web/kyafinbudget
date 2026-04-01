@@ -20,7 +20,7 @@ interface Transaction {
   category: string;
   date: string;
   user_id: string;
-  portfolio_id: string;
+  portfolio_id: string | null;
 }
 
 interface TopCategory {
@@ -34,6 +34,26 @@ interface RecentTransaction extends Transaction {
   payerName: string;
   payerInitial: string;
 }
+
+interface WeddingBudgetWidget {
+  id: string;
+  event_name: string;
+  event_date: string;
+  total_budget: number;
+  total_spent: number;
+  total_pending: number;
+  remaining: number;
+  status: string;
+}
+
+interface UpcomingWeddingPayment {
+  id: string;
+  provider_name: string;
+  remaining: number;
+  due_date: string | null;
+  status: string;
+}
+
 
 // —— Constantes ———————————————————————————————————————————————————————————————
 
@@ -82,6 +102,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   transactions = signal<Transaction[]>([]);
   kevinId = signal<string>('');
   angelyId = signal<string>('');
+  // —— Wedding widget ———————————————————————————————————————————————————————————————
+  weddingBudget = signal<WeddingBudgetWidget | null>(null);
+  weddingPendingCount = signal(0);
+  upcomingWeddingPayments = signal<UpcomingWeddingPayment[]>([]);
+  weddingLoading = signal(false);
 
   MONTHS_LIST = MONTHS;
 
@@ -226,6 +251,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     await this.loadUserIds();
+    await this.loadWeddingWidget();
   }
 
   ngOnDestroy(): void {
@@ -256,6 +282,101 @@ export class DashboardComponent implements OnInit, OnDestroy {
     } catch (err) {
       console.error('Error cargando IDs de usuarios:', err);
     }
+  }
+
+
+  async loadWeddingWidget(): Promise<void> {
+    this.weddingLoading.set(true);
+    try {
+      const { data: budgets, error: budgetError } = await this.supabase.client
+        .from('wedding_budgets')
+        .select('id, event_name, event_date, total_budget, status')
+        .in('status', ['planning', 'in_progress'])
+        .order('event_date', { ascending: true })
+        .limit(1);
+
+      if (budgetError) throw budgetError;
+
+      const budget = (budgets ?? [])[0] as (Pick<WeddingBudgetWidget, 'id' | 'event_name' | 'event_date' | 'total_budget' | 'status'>) | undefined;
+      if (!budget?.id) {
+        this.weddingBudget.set(null);
+        this.weddingPendingCount.set(0);
+        this.upcomingWeddingPayments.set([]);
+        return;
+      }
+
+      const { data: expenses, error: expenseError } = await this.supabase.client
+        .from('wedding_expenses')
+        .select('id, provider_name, amount, paid_amount, due_date, status')
+        .eq('wedding_budget_id', budget.id)
+        .order('created_at', { ascending: false });
+      if (expenseError) throw expenseError;
+
+      const rows = (expenses ?? []) as Array<{
+        id: string;
+        provider_name: string;
+        amount: number;
+        paid_amount: number | null;
+        due_date: string | null;
+        status: string;
+      }>;
+
+      const active = rows.filter((r) => r.status !== 'cancelled');
+      const planned = active.reduce((sum, r) => sum + Number(r.amount ?? 0), 0);
+      const spent = active.reduce((sum, r) => sum + Number(r.paid_amount ?? 0), 0);
+      const pending = active.reduce(
+        (sum, r) => sum + Math.max(0, Number(r.amount ?? 0) - Number(r.paid_amount ?? 0)),
+        0
+      );
+      const remaining = Number(budget.total_budget ?? 0) - planned;
+
+      this.weddingBudget.set({
+        id: budget.id,
+        event_name: budget.event_name,
+        event_date: budget.event_date,
+        total_budget: Number(budget.total_budget ?? 0),
+        total_spent: spent,
+        total_pending: pending,
+        remaining,
+        status: budget.status as string,
+      });
+
+      const pendingRows = rows.filter((r) => r.status === 'pending' || r.status === 'partial');
+      this.weddingPendingCount.set(pendingRows.length);
+
+      const upcoming = pendingRows
+        .slice()
+        .sort((a, b) => {
+          const ad = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
+          const bd = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
+          return ad - bd;
+        })
+        .slice(0, 3)
+        .map((r) => ({
+          id: r.id,
+          provider_name: r.provider_name,
+          remaining: Math.max(0, Number(r.amount ?? 0) - Number(r.paid_amount ?? 0)),
+          due_date: r.due_date,
+          status: r.status,
+        }));
+
+      this.upcomingWeddingPayments.set(upcoming);
+    } catch (err) {
+      console.error('Error cargando widget de boda:', err);
+      this.weddingBudget.set(null);
+      this.weddingPendingCount.set(0);
+      this.upcomingWeddingPayments.set([]);
+    } finally {
+      this.weddingLoading.set(false);
+    }
+  }
+
+  getWeddingSpendingPercentage(): number {
+    const budget = this.weddingBudget();
+    if (!budget) return 0;
+    const total = Number(budget.total_budget ?? 0);
+    if (total <= 0) return 0;
+    return Math.round((Number(budget.total_spent ?? 0) / total) * 100);
   }
 
   async loadTransactions(): Promise<void> {
@@ -457,6 +578,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 }
+
 
 
 

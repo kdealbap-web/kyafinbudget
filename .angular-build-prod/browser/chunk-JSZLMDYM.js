@@ -1,0 +1,1 @@
+import{I as i}from"./chunk-RM7DIVAO.js";var r=class o{toast;register(t){this.toast=t}show(t,s="info"){this.toast?.show(t,s)}success(t){this.toast?.success(t)}error(t){this.toast?.error(t)}info(t){this.toast?.info(t)}warning(t){this.toast?.warning(t)}static \u0275fac=function(s){return new(s||o)};static \u0275prov=i({token:o,factory:o.\u0275fac,providedIn:"root"})};export{r as a};
