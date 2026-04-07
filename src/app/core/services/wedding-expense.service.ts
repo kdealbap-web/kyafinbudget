@@ -83,6 +83,18 @@ export class WeddingExpenseService {
   private getPartnerId(): string | null {
     return this.supabase.userProfile()?.partner_id ?? null;
   }
+  private async enforceSingleInProgressBudget(activeBudgetId: string): Promise<void> {
+    try {
+      const { error } = await this.supabase.client
+        .from('wedding_budgets')
+        .update({ status: WeddingBudgetStatus.Planning })
+        .neq('id', activeBudgetId)
+        .eq('status', WeddingBudgetStatus.InProgress);
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error ajustando presupuesto en progreso:', err);
+    }
+  }
 
   async loadCategories(): Promise<void> {
     try {
@@ -211,6 +223,11 @@ export class WeddingExpenseService {
       if (error) throw error;
 
       const budget = data as WeddingBudget;
+
+      if (budget.status === WeddingBudgetStatus.InProgress) {
+        await this.enforceSingleInProgressBudget(budget.id);
+      }
+
       await this.loadBudgets();
       this.currentBudget.set(budget);
       return budget;
@@ -244,6 +261,11 @@ export class WeddingExpenseService {
       if (error) throw error;
 
       const updated = data as WeddingBudget;
+
+      if (updated.status === WeddingBudgetStatus.InProgress) {
+        await this.enforceSingleInProgressBudget(updated.id);
+      }
+
       await this.loadBudgets();
       if (this.currentBudget()?.id === id) this.currentBudget.set(updated);
       return updated;
@@ -481,7 +503,58 @@ export class WeddingExpenseService {
       this.isLoading.set(false);
     }
   }
-  async cancelExpense(id: string): Promise<boolean> {
+
+  async deleteExpense(expenseId: string): Promise<boolean> {
+    this.isLoading.set(true);
+    this.error.set(null);
+    try {
+      // 1) Best-effort: listar adjuntos para borrar archivos
+      const { data: attachments, error: attError } = await this.supabase.client
+        .from('wedding_expense_attachments')
+        .select('id, storage_path')
+        .eq('expense_id', expenseId);
+      if (attError) throw attError;
+
+      for (const a of (attachments ?? []) as Array<{ id: string; storage_path: string }>) {
+        try {
+          await this.supabase.client.storage
+            .from(this.attachmentsBucket)
+            .remove([a.storage_path]);
+        } catch (storageErr) {
+          console.error('Error borrando archivo en storage:', storageErr);
+        }
+      }
+
+      // 2) Borrar adjuntos y pagos (por si no hay cascade)
+      const { error: delAttError } = await this.supabase.client
+        .from('wedding_expense_attachments')
+        .delete()
+        .eq('expense_id', expenseId);
+      if (delAttError) throw delAttError;
+
+      const { error: delPayError } = await this.supabase.client
+        .from('wedding_expense_payments')
+        .delete()
+        .eq('expense_id', expenseId);
+      if (delPayError) throw delPayError;
+
+      // 3) Borrar gasto
+      const { error } = await this.supabase.client
+        .from('wedding_expenses')
+        .delete()
+        .eq('id', expenseId);
+      if (error) throw error;
+
+      this.expenses.update((list) => list.filter((e) => e.id !== expenseId));
+      return true;
+    } catch (err) {
+      console.error('Error eliminando gasto de boda:', err);
+      this.error.set('No se pudo eliminar el gasto.');
+      return false;
+    } finally {
+      this.isLoading.set(false);
+    }
+  }  async cancelExpense(id: string): Promise<boolean> {
     const updated = await this.updateExpense(id, { status: WeddingExpenseStatus.Cancelled });
     return !!updated;
   }
@@ -608,3 +681,6 @@ export class WeddingExpenseService {
     }
   }
 }
+
+
+

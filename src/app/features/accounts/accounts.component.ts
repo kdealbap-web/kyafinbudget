@@ -59,6 +59,13 @@ export class AccountsComponent implements OnInit {
 
   readonly showCreateModal = signal(false);
 
+  readonly showBalanceModal = signal(false);
+  readonly balanceAccount = signal<Account | null>(null);
+
+  readonly updateBalanceForm = this.fb.nonNullable.group({
+    balance: this.fb.nonNullable.control<number>(0, [Validators.required]),
+  });
+
   readonly typeOptions = Object.values(AccountType);
   readonly accountColors = ACCOUNT_COLORS;
 
@@ -112,6 +119,59 @@ export class AccountsComponent implements OnInit {
       color: '',
       is_shared: false,
     });
+  }
+
+  openBalanceModal(account: Account): void {
+    this.balanceAccount.set(account);
+    this.updateBalanceForm.reset({ balance: Number(account.balance ?? 0) });
+    this.showBalanceModal.set(true);
+  }
+
+  closeBalanceModal(): void {
+    this.showBalanceModal.set(false);
+    this.balanceAccount.set(null);
+    this.updateBalanceForm.reset({ balance: 0 });
+  }
+
+  private formatCop(value: number): string {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      maximumFractionDigits: 0,
+    }).format(Number(value ?? 0));
+  }
+
+  async submitBalanceUpdate(): Promise<void> {
+    if (this.updateBalanceForm.invalid) {
+      this.updateBalanceForm.markAllAsTouched();
+      return;
+    }
+
+    const account = this.balanceAccount();
+    if (!account) return;
+
+    const newBalance = Number(this.updateBalanceForm.controls.balance.value ?? 0);
+    const confirmed = await this.confirmDialog.confirm({
+      title: '¿Actualizar balance?',
+      message: `${account.name}: ${this.formatCop(Number(account.balance ?? 0))} → ${this.formatCop(newBalance)}.\n\nEste cambio actualiza el saldo guardado en la cuenta y no crea una transacción.`,
+      confirmLabel: 'Sí, actualizar',
+      cancelLabel: 'Cancelar',
+      type: 'warning',
+    });
+    if (!confirmed) return;
+
+    this.progressBar.start();
+    try {
+      const updated = await this.accountService.updateAccountBalance(account.id, newBalance);
+      if (updated) {
+        this.closeBalanceModal();
+        this.progressBar.complete();
+      } else {
+        this.progressBar.error();
+      }
+    } catch {
+      this.progressBar.error();
+    }
   }
 
   selectColor(color: string): void {
@@ -213,3 +273,5 @@ export class AccountsComponent implements OnInit {
     return this.createForm.controls.color.value === color;
   }
 }
+
+

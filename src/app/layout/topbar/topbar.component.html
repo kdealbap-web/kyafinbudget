@@ -18,6 +18,21 @@
         <path d="M3 6h18M3 12h18M3 18h18"/>
       </svg>
     </button>
+    <!-- Home (mobile) -->
+    <a
+      routerLink="/dashboard"
+      class="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl
+             text-gray-500 hover:text-gray-900 hover:bg-gray-100
+             dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/80
+             transition-all duration-150"
+      aria-label="Ir al dashboard"
+      title="Inicio"
+    >
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </a>
 
     <!-- Breadcrumb (desktop) -->
     <nav class="hidden lg:flex items-center gap-2" aria-label="Breadcrumb">
@@ -36,22 +51,7 @@
       </span>
     </nav>
 
-    <!-- Logo mobile (centrado en mobile via absolute) -->
   </div>
-
-  <!-- Logo centrado en mobile -->
-  <div class="absolute left-1/2 -translate-x-1/2 lg:hidden">
-    <a routerLink="/dashboard" class="flex items-center gap-2">
-      <div class="w-7 h-7 rounded-[8px] bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center shadow-sm">
-        <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-          <path d="M12 6v6l4 2"/>
-        </svg>
-      </div>
-      <span class="text-[15px] font-bold text-gray-900 dark:text-white tracking-tight">K&A Fin Budget</span>
-    </a>
-  </div>
-
   <!-- ── DERECHA: Acciones ────────────────────── -->
   <div class="flex items-center gap-1">
 
@@ -79,45 +79,7 @@
       }
     </button>
 
-
-    <!-- Acceso rápido: Boda -->
-    <a
-      routerLink="/wedding"
-      class="relative w-9 h-9 flex items-center justify-center rounded-xl
-             text-gray-500 hover:text-gray-900 hover:bg-gray-100
-             dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/80
-             transition-all duration-150"
-      aria-label="Gastos de boda"
-      title="Gastos de Boda"
-    >
-      <span class="text-[18px]">💍</span>
-      @if (weddingPendingCount() > 0) {
-        <span
-          class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold
-                 rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center"
-        >
-          {{ weddingPendingCount() }}
-        </span>
-      }
-    </a>   <!-- Notificaciones -->
-    <button
-      type="button"
-      class="relative w-9 h-9 flex items-center justify-center rounded-xl
-             text-gray-500 hover:text-gray-900 hover:bg-gray-100
-             dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800/80
-             transition-all duration-150"
-      aria-label="Notificaciones"
-    >
-      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-      </svg>
-      @if (notificationCount() > 0) {
-        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-gray-950"></span>
-      }
-    </button>
-
-    <!-- Divider -->
+    
     <div class="w-px h-5 bg-gray-200 dark:bg-gray-800 mx-1"></div>
 
     <!-- Avatar / Dropdown -->
@@ -221,4 +183,12 @@
 
   </div>
 </header>
+
+
+
+
+
+
+
+
 

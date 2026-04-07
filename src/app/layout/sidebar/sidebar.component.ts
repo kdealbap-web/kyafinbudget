@@ -1,8 +1,6 @@
 ﻿import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
-import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { filter, map } from 'rxjs/operators';
+import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { AppRole, Profile } from '../../domain/models/profile.model';
@@ -153,79 +151,77 @@ interface NavItem {
     :host ::ng-deep nav.scrollbar-none::-webkit-scrollbar {
       display: none;
     }
-  `]
+  `],
 })
 export class SidebarComponent implements OnInit {
-  private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
-  readonly supabase = inject(SupabaseService);
+  private readonly supabase = inject(SupabaseService);
 
-  isOpen = signal(false);
-  userProfile = signal<Profile | null>(null);
+  readonly isOpen = signal(false);
+  readonly userProfile = signal<Profile | null>(null);
 
-  private readonly routerUrl = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(event => event.urlAfterRedirects)
-    ),
-    { initialValue: this.router.url }
-  );
+  readonly isAdmin = computed(() => this.supabase.userRole() === AppRole.SuperAdmin);
+  readonly isPartner = computed(() => this.supabase.userRole() === AppRole.Partner);
+  readonly isUser = computed(() => this.supabase.userRole() === AppRole.User);
+  readonly canSeeFinance = computed(() => {
+    const role = this.supabase.userRole();
+    return role === AppRole.SuperAdmin || role === AppRole.Partner;
+  });
 
-  currentRoute = computed(() => this.routerUrl());
-
-  isAdmin   = computed(() => this.supabase.userRole() === AppRole.SuperAdmin);
-  isPartner = computed(() => this.supabase.userRole() === AppRole.Partner);
-  isUser    = computed(() => this.supabase.userRole() === AppRole.User);
-  canSeeFinance = computed(() => this.isAdmin() || this.isPartner());
-
-  roleLabel = computed(() => {
-    const r = this.supabase.userRole();
-    if (r === AppRole.SuperAdmin) return 'Admin';
-    if (r === AppRole.Partner)    return 'Pareja';
+  readonly roleLabel = computed(() => {
+    const role = this.supabase.userRole();
+    if (role === AppRole.SuperAdmin) return 'Admin';
+    if (role === AppRole.Partner) return 'Pareja';
     return 'Usuario';
   });
 
-  userInitial = computed(() =>
-    (this.userProfile()?.full_name?.charAt(0) ?? 'U').toUpperCase()
+  readonly userInitial = computed(() =>
+    (this.userProfile()?.full_name?.charAt(0) ?? 'U').toUpperCase(),
   );
 
-  // ── Nav items ──────────────────────────────────
-  mainNavItems = signal<NavItem[]>([
-    { path: '/dashboard',    label: 'Dashboard',       icon: 'dashboard', exact: true },
-    { path: '/transactions', label: 'Transacciones',   icon: 'transactions' },
+  readonly mainNavItems = signal<NavItem[]>([
+    { path: '/dashboard', label: 'Dashboard', icon: 'dashboard', exact: true },
+    { path: '/transactions', label: 'Transacciones', icon: 'transactions' },
   ]);
 
-  financeNavItems = signal<NavItem[]>([
-    { path: '/accounts',  label: 'Mis Cuentas',       icon: 'accounts' },
+  readonly financeNavItems = signal<NavItem[]>([
+    { path: '/accounts', label: 'Mis Cuentas', icon: 'accounts' },
     { path: '/scheduled', label: 'Pagos Programados', icon: 'scheduled' },
-    { path: '/debts',     label: 'Mis Deudas',        icon: 'debts' },
-    { path: '/wedding',   label: 'Matrimonio',      icon: 'wedding' },
-    { path: '/import',    label: 'Importar Excel',    icon: 'import' },
+    { path: '/debts', label: 'Mis Deudas', icon: 'debts' },
+    { path: '/wedding', label: 'Matrimonio', icon: 'wedding' },
+    { path: '/import', label: 'Importar Excel', icon: 'import' },
   ]);
 
-  adminNavItems = signal<NavItem[]>([
-    { path: '/admin/users', label: 'Usuarios',   icon: 'users' },
-    { path: '/admin/audit', label: 'Auditoría',  icon: 'audit' },
+  readonly adminNavItems = signal<NavItem[]>([
+    { path: '/admin/users', label: 'Usuarios', icon: 'users' },
+    { path: '/admin/audit', label: 'Auditoría', icon: 'audit' },
   ]);
 
-  bottomNavItems = signal<NavItem[]>([
-    { path: '/dashboard',    label: 'Inicio',   icon: 'dashboard' },
-    { path: '/transactions', label: 'Gastos',   icon: 'transactions' },
-    { path: '/wedding',      label: 'Boda',     icon: 'wedding' },
-    { path: '/accounts',     label: 'Cuentas',  icon: 'accounts' },
-    { path: '/scheduled',    label: 'Pagos',    icon: 'scheduled' },
+  readonly bottomNavItems = signal<NavItem[]>([
+    { path: '/dashboard', label: 'Inicio', icon: 'dashboard' },
+    { path: '/transactions', label: 'Gastos', icon: 'transactions' },
+    { path: '/wedding', label: 'Boda', icon: 'wedding' },
+    { path: '/accounts', label: 'Cuentas', icon: 'accounts' },
   ]);
 
   async ngOnInit(): Promise<void> {
     await this.loadUserProfile();
   }
 
-  async loadUserProfile(): Promise<void> {
+  private async loadUserProfile(): Promise<void> {
     const userId = this.supabase.currentUser()?.id;
-    if (!userId) { this.userProfile.set(null); return; }
+    if (!userId) {
+      this.userProfile.set(null);
+      return;
+    }
+
     try {
       const { data, error } = await this.supabase.client
-        .from('profiles').select('*').eq('id', userId).single();
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
       if (error) throw error;
       this.userProfile.set(data as Profile);
     } catch {
@@ -239,17 +235,17 @@ export class SidebarComponent implements OnInit {
     return true;
   }
 
-  closeSidebar():  void { this.isOpen.set(false); }
-  toggleSidebar(): void { this.isOpen.update(v => !v); }
+  closeSidebar(): void {
+    this.isOpen.set(false);
+  }
 
-  isActive(path: string): boolean {
-    const route = this.currentRoute();
-    if (!route) return false;
-    return route === path || route.startsWith(path + '/');
+  toggleSidebar(): void {
+    this.isOpen.update((v) => !v);
   }
 
   async logout(): Promise<void> {
     await this.authService.signOut();
   }
 }
+
 

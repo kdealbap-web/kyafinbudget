@@ -97,4 +97,26 @@ export class AccountService {
       return false;
     }
   }
+  async updateAccountBalance(id: string, balance: number): Promise<Account | null> {
+    this.isLoading.set(true);
+    try {
+      const { data, error } = await this.supabase.client
+        .from('accounts')
+        .update({ balance: Number(balance ?? 0) })
+        .eq('id', id)
+        .select('*')
+        .single();
+      if (error) throw error;
+      const updated = data as Account;
+      this.accounts.update((current) =>
+        current.map((acc) => (acc.id === id ? updated : acc)),
+      );
+      return updated;
+    } catch (err) {
+      console.error('Error actualizando balance de cuenta:', err);
+      return null;
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
 }

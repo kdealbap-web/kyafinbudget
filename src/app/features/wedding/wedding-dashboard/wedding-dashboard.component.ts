@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CurrencyCopPipe } from '../../../shared/pipes/currency-cop.pipe';
+import { CurrencyCopInputDirective } from '../../../shared/directives/currency-cop-input.directive';
 import { ConfirmDialogService } from '../../../shared/services/confirm-dialog.service';
 import { ToastService } from '../../../shared/services/toast.service';
 
@@ -22,10 +23,22 @@ import { WeddingExpense, WeddingExpenseStatus } from '../../../domain/models/wed
 import { WeddingExpensePaymentMethod } from '../../../domain/models/wedding-expense-payment.model';
 import { WeddingExpenseAttachment, WeddingExpenseAttachmentType } from '../../../domain/models/wedding-expense-attachment.model';
 
+type WeddingCategoryBreakdownRow = {
+  id: string;
+  name: string;
+  color: string | null;
+  icon: string | null;
+  planned: number;
+  spent: number;
+  pending: number;
+  count: number;
+  percentOfBudget: number;
+};
+
 @Component({
   selector: 'app-wedding-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CurrencyCopPipe],
+  imports: [CommonModule, ReactiveFormsModule, CurrencyCopPipe, CurrencyCopInputDirective],
   templateUrl: './wedding-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -44,6 +57,16 @@ export class WeddingDashboardComponent implements OnInit {
 
   readonly isLoading = computed(() => this.weddingService.isLoading());
   readonly budgets = computed(() => this.weddingService.budgets());
+
+  readonly sortedBudgets = computed(() => {
+    const list = this.budgets();
+    return [...list].sort((a, b) => {
+      const ca = a.created_at ?? '';
+      const cb = b.created_at ?? '';
+      if (ca !== cb) return cb.localeCompare(ca);
+      return (b.event_date ?? '').localeCompare(a.event_date ?? '');
+    });
+  });
   readonly currentBudget = computed(() => this.weddingService.currentBudget());
   readonly expenses = computed(() => this.weddingService.expenses());
   readonly categories = computed(() => this.weddingService.categories());
@@ -62,24 +85,123 @@ export class WeddingDashboardComponent implements OnInit {
       Math.max(0, Math.round((this.budgetTotals().spent / total) * 100))
     );
   });
-
   readonly budgetTotals = computed(() => {
     const budget = this.currentBudget();
     const totalBudget = Number(budget?.total_budget ?? 0);
-    const activeExpenses = this.expenses().filter((e) => e.status !== WeddingExpenseStatus.Cancelled);
+    const activeExpenses = this
+      .expenses()
+      .filter((e) => e.status !== WeddingExpenseStatus.Cancelled);
+
     const planned = activeExpenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0);
     const spent = activeExpenses.reduce((sum, e) => sum + Number(e.paid_amount ?? 0), 0);
     const pending = activeExpenses.reduce(
       (sum, e) => sum + Math.max(0, Number(e.amount ?? 0) - Number(e.paid_amount ?? 0)),
-      0
+      0,
     );
+
     const remaining = totalBudget - planned;
     return { totalBudget, planned, spent, pending, remaining };
   });
 
+  readonly categoryBreakdown = computed(() => {
+    const totalBudget = Number(this.currentBudget()?.total_budget ?? 0);
+    const activeExpenses = this
+      .expenses()
+      .filter((e) => e.status !== WeddingExpenseStatus.Cancelled);
+
+    const byCat = new Map<string, WeddingCategoryBreakdownRow>();
+
+    for (const e of activeExpenses) {
+      const catId = e.category?.id ?? e.category_id ?? 'unknown';
+      const name = e.category?.name ?? 'Sin categoría';
+      const color = (e.category as unknown as { color?: string | null })?.color ?? null;
+      const icon = (e.category as unknown as { icon?: string | null })?.icon ?? null;
+
+      const amount = Number(e.amount ?? 0);
+      const paid = Number(e.paid_amount ?? 0);
+      const pending = Math.max(0, amount - paid);
+
+      const current = byCat.get(catId) ?? {
+        id: catId,
+        name,
+        color,
+        icon,
+        planned: 0,
+        spent: 0,
+        pending: 0,
+        count: 0,
+        percentOfBudget: 0,
+      };
+
+      current.name = name;
+      current.color = color;
+      current.icon = icon;
+      current.planned += amount;
+      current.spent += paid;
+      current.pending += pending;
+      current.count += 1;
+
+      byCat.set(catId, current);
+    }
+
+    const rows = Array.from(byCat.values()).map((r) => ({
+      ...r,
+      percentOfBudget:
+        totalBudget > 0
+          ? Math.min(100, Math.max(0, Math.round((r.planned / totalBudget) * 100)))
+          : 0,
+    }));
+
+    rows.sort((a, b) => b.planned - a.planned);
+    return rows;
+  });
+
+  readonly categoryBreakdownMaxPlanned = computed(() => {
+    const rows = this.categoryBreakdown();
+    if (!rows.length) return 1;
+    return Math.max(1, ...rows.map((r) => Number(r.planned ?? 0)));
+  });
+  readonly selectedFilter = signal<'current' | 'all'>('current');
+
+  readonly filteredExpenses = computed(() => {
+    const all = this.expenses();
+    if (this.selectedFilter() === 'all') return all;
+    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+    return all.filter(e => {
+      const d = e.created_at ?? e.due_date ?? '';
+      return d.slice(0, 7) === currentMonth;
+    });
+  });
+
+  readonly filteredSpent = computed(() =>
+    this.filteredExpenses()
+      .filter(e => e.status !== WeddingExpenseStatus.Cancelled)
+      .reduce((s, e) => s + Number(e.paid_amount ?? 0), 0)
+  );
+
+  readonly filteredPending = computed(() =>
+    this.filteredExpenses()
+      .filter(e => e.status !== WeddingExpenseStatus.Cancelled)
+      .reduce((s, e) => s + Math.max(0, Number(e.amount ?? 0) - Number(e.paid_amount ?? 0)), 0)
+  );
+
+  readonly expensesByMonth = computed(() => {
+    const map = new Map<string, WeddingExpense[]>();
+    for (const e of this.filteredExpenses()) {
+      const key = (e.created_at ?? e.due_date ?? '').slice(0, 7);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(e);
+    }
+    return [...map.entries()]
+      .sort(([a], [b]) => b.localeCompare(a))
+      .map(([month, expenses]) => ({ month, expenses }));
+  });
+
+
   readonly showBudgetForm = signal(false);
   readonly showExpenseForm = signal(false);
   readonly showPaymentForm = signal(false);
+  readonly isEditingBudget = signal(false);
 
   readonly editingExpenseId = signal<string | null>(null);
   readonly selectedExpenseForPayment = signal<WeddingExpense | null>(null);
@@ -96,7 +218,7 @@ export class WeddingDashboardComponent implements OnInit {
       Validators.min(100_000),
     ]),
     status: this.fb.nonNullable.control<WeddingBudgetStatus>(
-      WeddingBudgetStatus.Planning,
+      WeddingBudgetStatus.InProgress,
       [Validators.required]
     ),
     notes: this.fb.control<string | null>(null),
@@ -156,13 +278,32 @@ export class WeddingDashboardComponent implements OnInit {
       return;
     }
 
-    const first = this.budgets()[0];
-    if (first?.id) {
-      await this.weddingService.loadBudgetWithExpenses(first.id);
+    const latest = this.sortedBudgets()[0];
+    if (latest?.id) {
+      await this.weddingService.loadBudgetWithExpenses(latest.id);
     }
   }
 
-  openBudgetForm(): void {
+  openBudgetForm(editMode = false): void {
+    this.isEditingBudget.set(editMode);
+    if (editMode && this.currentBudget()) {
+      const b = this.currentBudget()!;
+      this.budgetForm.reset({
+        event_name: b.event_name ?? 'Boda K&A',
+        event_date: b.event_date ?? this.todayISO(),
+        total_budget: Number(b.total_budget ?? 0),
+        status: b.status as WeddingBudgetStatus,
+        notes: b.notes ?? null,
+      });
+    } else {
+      this.budgetForm.reset({
+        event_name: 'Boda K&A',
+        event_date: this.todayISO(),
+        total_budget: 0,
+        status: WeddingBudgetStatus.InProgress,
+        notes: null,
+      });
+    }
     this.showBudgetForm.set(true);
   }
 
@@ -234,6 +375,12 @@ export class WeddingDashboardComponent implements OnInit {
     this.selectedExpenseDetails.set(expense);
     this.selectedAttachmentFile.set(null);
     this.attachmentForm.reset({ attachment_type: WeddingExpenseAttachmentType.Quote });
+
+    if (typeof document !== 'undefined') {
+      setTimeout(() => {
+        document.getElementById('wedding-expense-details')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 0);
+    }
   }
 
   closeDetails(): void {
@@ -254,6 +401,28 @@ export class WeddingDashboardComponent implements OnInit {
     }
 
     const raw = this.budgetForm.getRawValue();
+
+    // Editar presupuesto existente
+    if (this.isEditingBudget() && this.currentBudget()?.id) {
+      const budgetId = this.currentBudget()!.id;
+      const updated = await this.weddingService.updateBudget(budgetId, {
+        event_name: raw.event_name,
+        event_date: raw.event_date,
+        total_budget: Number(raw.total_budget ?? 0),
+        status: raw.status,
+        notes: raw.notes,
+      });
+      if (updated?.id) {
+        this.toast.success('Presupuesto actualizado');
+        this.closeBudgetForm();
+        await this.weddingService.loadBudgetWithExpenses(updated.id);
+        return;
+      }
+      this.toast.error('No se pudo actualizar el presupuesto');
+      return;
+    }
+
+    // Crear nuevo presupuesto
     const created = await this.weddingService.createBudget({
       event_name: raw.event_name,
       event_date: raw.event_date,
@@ -311,30 +480,31 @@ export class WeddingDashboardComponent implements OnInit {
 
     this.toast.error(expenseId ? 'No se pudo actualizar el gasto' : 'No se pudo crear el gasto');
   }
-
-  async cancelExpense(expense: WeddingExpense): Promise<void> {
+  async deleteExpense(expense: WeddingExpense): Promise<void> {
     const confirmed = await this.confirmDialog.confirm({
-      title: 'Cancelar gasto',
-      message: `¿Cancelar el gasto de "${expense.provider_name}"?`,
+      title: 'Eliminar gasto',
+      message: `¿Eliminar el gasto de "${expense.provider_name}"? Esta acción no se puede deshacer.`,
       type: 'danger',
-      confirmLabel: 'Sí, cancelar',
-      cancelLabel: 'No',
+      confirmLabel: 'Sí, eliminar',
+      cancelLabel: 'Cancelar',
     });
 
     if (!confirmed) return;
 
-    const ok = await this.weddingService.cancelExpense(expense.id);
+    const ok = await this.weddingService.deleteExpense(expense.id);
     if (!ok) {
-      this.toast.error('No se pudo cancelar el gasto');
+      this.toast.error('No se pudo eliminar el gasto');
       return;
     }
 
     const budgetId = this.currentBudget()?.id;
     if (budgetId) await this.weddingService.loadBudgetWithExpenses(budgetId);
-    this.toast.success('Gasto cancelado');
-    this.refreshDetailsExpense(expense.id);
-  }
+    this.toast.success('Gasto eliminado');
 
+    if (this.selectedExpenseDetails()?.id === expense.id) {
+      this.closeDetails();
+    }
+  }
   async submitPayment(): Promise<void> {
     const expense = this.selectedExpenseForPayment();
     if (!expense) return;
@@ -373,65 +543,56 @@ export class WeddingDashboardComponent implements OnInit {
     this.refreshDetailsExpense(expense.id);
   }
 
-
-
-  downloadReport(): void {
+  async downloadReport(): Promise<void> {
     const budget = this.currentBudget();
     const expenses = this.expenses();
 
     if (!budget || expenses.length === 0) {
-      this.toast.warning('No hay datos para descargar');
+      this.toast.warning('No hay datos para exportar');
       return;
     }
 
-    const headers = [
-      'Proveedor',
-      'Categoría',
-      'Cuenta',
-      'Monto',
-      'Pagado',
-      'Pendiente',
-      'Estado',
-      'Vence',
-    ];
+    try {
+      const XLSX = await import('xlsx');
 
-    const rows = expenses.map((e) => [
-      e.provider_name,
-      e.category?.name || '',
-      this.getAccountName(e.account_id),
-      Number(e.amount ?? 0).toLocaleString('es-CO'),
-      Number(e.paid_amount ?? 0).toLocaleString('es-CO'),
-      Number(e.remaining ?? 0).toLocaleString('es-CO'),
-      e.status,
-      e.due_date ? new Date(e.due_date).toISOString().split('T')[0] : '',
-    ]);
+      const rows = expenses.map((e) => ({
+        Proveedor: e.provider_name ?? '',
+        Categoría: e.category?.name ?? '',
+        Cuenta: this.getAccountName(e.account_id),
+        Monto: Number(e.amount ?? 0),
+        Pagado: Number(e.paid_amount ?? 0),
+        Pendiente: Number(e.remaining ?? 0),
+        Estado: e.status ?? '',
+        Vence: e.due_date ? new Date(e.due_date).toISOString().split('T')[0] : '',
+      }));
 
-    const csv = [
-      headers.map((h) => this.escapeCsv(h)).join(','),
-      ...rows.map((r) => r.map((cell) => this.escapeCsv(cell)).join(',')),
-    ].join('\n');
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Gastos');
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+      const data = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
 
-    const safeName = (budget.event_name ?? 'boda')
-      .replace(/\s+/g, '-')
-      .replace(/[^a-zA-Z0-9-_]/g, '')
-      .toLowerCase();
-    const today = new Date().toISOString().split('T')[0];
+      const safeName = (budget.event_name ?? 'boda')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-zA-Z0-9-_]/g, '')
+        .toLowerCase();
+      const today = new Date().toISOString().split('T')[0];
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `boda-gastos-${safeName}-${today}.csv`;
-    link.click();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `boda-gastos-${safeName}-${today}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(url);
 
-    URL.revokeObjectURL(url);
-    this.toast.success('Reporte descargado');
-  }
-
-  private escapeCsv(value: unknown): string {
-    const s = String(value ?? '');
-    return `"${s.replace(/"/g, '""')}"`;
+      this.toast.success('Reporte Excel descargado');
+    } catch (err) {
+      console.error('Error exportando reporte:', err);
+      this.toast.error('No se pudo exportar el reporte');
+    }
   }
   onAttachmentFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -521,13 +682,57 @@ export class WeddingDashboardComponent implements OnInit {
   getExpenseStatusClass(status: string): string {
     switch (status) {
       case WeddingExpenseStatus.Paid:
-        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300';
+        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200';
       case WeddingExpenseStatus.Partial:
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200';
       case WeddingExpenseStatus.Cancelled:
-        return 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+        return 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
       default:
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
+        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200';
+    }
+  }
+
+  getExpenseStatusText(status: string): string {
+    switch (status) {
+      case WeddingExpenseStatus.Paid:
+        return 'Pagado';
+      case WeddingExpenseStatus.Partial:
+        return 'Pago parcial';
+      case WeddingExpenseStatus.Cancelled:
+        return 'Eliminado';
+      default:
+        return 'Pendiente de pago';
+    }
+  }
+  getPaymentMethodText(method: WeddingExpensePaymentMethod | string | null | undefined): string {
+    if (!method) return '—';
+    switch (method) {
+      case WeddingExpensePaymentMethod.Cash:
+        return 'Efectivo';
+      case WeddingExpensePaymentMethod.Transfer:
+        return 'Transferencia';
+      case WeddingExpensePaymentMethod.Card:
+        return 'Tarjeta';
+      case WeddingExpensePaymentMethod.Check:
+        return 'Cheque';
+      default:
+        return String(method ?? '');
+    }
+  }
+
+  getPaymentMethodDotClass(method: WeddingExpensePaymentMethod | string | null | undefined): string {
+    if (!method) return 'bg-gray-400';
+    switch (method) {
+      case WeddingExpensePaymentMethod.Transfer:
+        return 'bg-blue-600';
+      case WeddingExpensePaymentMethod.Cash:
+        return 'bg-emerald-600';
+      case WeddingExpensePaymentMethod.Card:
+        return 'bg-purple-600';
+      case WeddingExpensePaymentMethod.Check:
+        return 'bg-gray-500';
+      default:
+        return 'bg-gray-400';
     }
   }
 
@@ -547,7 +752,43 @@ export class WeddingDashboardComponent implements OnInit {
     if (refreshed) this.selectedExpenseDetails.set(refreshed);
   }
 
+  setFilter(f: 'current' | 'all'): void {
+    this.selectedFilter.set(f);
+  }
+
+  formatMonth(month: string): string {
+    const [year, m] = month.split('-');
+    const date = new Date(Number(year), Number(m) - 1, 1);
+    return date.toLocaleDateString('es-CO', { year: 'numeric', month: 'long' });
+  }
+
+  getCategoryPlannedWidth(row: WeddingCategoryBreakdownRow): number {
+    const max = Number(this.categoryBreakdownMaxPlanned() ?? 1);
+    if (!max || max <= 0) return 0;
+    const planned = Number(row.planned ?? 0);
+    return Math.min(100, Math.max(0, Math.round((planned / max) * 100)));
+  }
+
   private todayISO(): string {
     return new Date().toISOString().split('T')[0];
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

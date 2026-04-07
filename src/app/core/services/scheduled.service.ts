@@ -17,7 +17,7 @@ export interface ScheduledPayment {
   alert_email: string | null;
   is_active: boolean;
   last_sent: string | null;
-  portfolio?: { id: string; name: string } | null;
+  portfolio?: { id: string; name: string; type?: string } | null;
   account?: { id: string; name: string; bank_slug?: string | null; bank_name?: string | null; color?: string | null } | null;
 }
 
@@ -40,7 +40,7 @@ export class ScheduledService {
           id, portfolio_id, user_id, account_id,
           concept, amount, type, category,
           day_of_month, alert_email, is_active, last_sent,
-          portfolios:portfolio_id (id, name),
+          portfolios:portfolio_id (id, name, type),
           accounts:account_id (id, name, bank_slug, bank_name, color)
         `)
         .order('day_of_month', { ascending: true });
@@ -61,8 +61,8 @@ export class ScheduledService {
         is_active: Boolean(row['is_active']),
         last_sent: (row['last_sent'] as string | null) ?? null,
         portfolio: Array.isArray(row['portfolios'])
-          ? (row['portfolios'][0] as { id: string; name: string })
-          : (row['portfolios'] as { id: string; name: string } | null),
+          ? (row['portfolios'][0] as { id: string; name: string; type?: string })
+          : (row['portfolios'] as { id: string; name: string; type?: string } | null),
         account: Array.isArray(row['accounts'])
           ? (row['accounts'][0] as { id: string; name: string; bank_slug?: string | null; bank_name?: string | null; color?: string | null })
           : (row['accounts'] as { id: string; name: string; bank_slug?: string | null; bank_name?: string | null; color?: string | null } | null),
@@ -168,4 +168,5 @@ export class ScheduledService {
     }
   }
 }
+
 

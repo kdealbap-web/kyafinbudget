@@ -1,7 +1,8 @@
 ﻿<!-- Overlay mobile con blur -->
 @if (isOpen()) {
   <div
-    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
+    class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+    style="animation: fadeInOverlay 0.25s ease-out;"
     (click)="closeSidebar()"
     aria-hidden="true"
   ></div>
@@ -10,9 +11,21 @@
 <!-- ═══════════════════════════════════════════
      SIDEBAR PRINCIPAL
 ════════════════════════════════════════════ -->
+<style>
+  @keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes slideInSidebar {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(0); }
+  }
+</style>
+
 <aside
   [class.translate-x-0]="isOpen()"
   [class.-translate-x-full]="!isOpen()"
+  [style]="isOpen() ? 'animation: slideInSidebar 0.28s cubic-bezier(0.25,0.46,0.45,0.94);' : ''"
   class="fixed left-0 top-0 h-full w-[248px] flex flex-col
          bg-white dark:bg-gray-950
          border-r border-gray-100 dark:border-gray-800/60
@@ -140,6 +153,14 @@
             </ng-container>
           </span>
           <span class="nav-label">{{ item.label }}</span>
+          @if (item.badge) {
+            <span
+              class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full"
+              [ngClass]="item.path === '/wedding' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'"
+            >
+              {{ item.badge }}
+            </span>
+          }
         </a>
       }
     } @else {
@@ -196,6 +217,14 @@
             </ng-container>
           </span>
           <span class="nav-label">{{ item.label }}</span>
+          @if (item.badge) {
+            <span
+              class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full"
+              [ngClass]="item.path === '/wedding' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'"
+            >
+              {{ item.badge }}
+            </span>
+          }
         </a>
       }
     }
@@ -269,7 +298,7 @@
           routerLinkActive="bottom-nav-active"
           class="bottom-nav-item"
         >
-          <span class="bottom-nav-icon">
+          <span class="bottom-nav-icon relative">
             <ng-container [ngSwitch]="item.path">
               <ng-container *ngSwitchCase="'/dashboard'">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -309,10 +338,33 @@
                 </svg>
               </ng-container>
             </ng-container>
-          </span>
+           </span>
           <span class="bottom-nav-label">{{ item.label }}</span>
         </a>
       }
     }
+
+    <!-- 5° slot: Más (abre sidebar overlay con todos los items) -->
+    <button
+      type="button"
+      class="bottom-nav-item"
+      (click)="toggleSidebar()"
+      [class.bottom-nav-active]="isOpen()"
+      aria-label="Ver más opciones"
+    >
+      <span class="bottom-nav-icon relative">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </span>
+      <span class="bottom-nav-label">Más</span>
+    </button>
   </div>
 </nav>
+
+
+
+
+

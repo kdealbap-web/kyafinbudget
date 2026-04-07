@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AccountService } from '../../core/services/account.service';
@@ -34,11 +34,18 @@ export class DebtsComponent implements OnInit {
   readonly debts      = computed(() => this.debtService.debts());
   readonly totalDebt  = computed(() => this.debtService.totalDebt());
   readonly personalDebt   = computed(() => this.debtService.personalDebt());
-  readonly householdDebt  = computed(() => this.debtService.householdDebt());
+  readonly householdDebt  = computed(() => {
+    return this.debts()
+      .filter((d) => this.isHouseholdDebt(d) && d.status !== DebtStatus.Paid)
+      .reduce((sum, d) => sum + Number(d.remaining_amount ?? 0), 0);
+  });
   readonly overdueCount   = computed(() => this.debtService.overdueDebts().length);
 
   readonly portfolios = computed(() => this.portfolioService.portfolios());
   readonly accounts   = computed(() => this.accountService.accounts());
+
+  readonly currentUserId = computed(() => this.supabase.currentUser()?.id ?? null);
+  readonly householdPortfolioId = computed(() => this.portfolios().find(p => p.type === 'household')?.id ?? null);
 
   readonly activeTab          = signal<DebtTab>('all');
   readonly showPaymentModal   = signal(false);
@@ -56,7 +63,7 @@ export class DebtsComponent implements OnInit {
   readonly tabConfig: { id: DebtTab; label: string; count: () => number }[] = [
     { id: 'all',       label: 'Todas',    count: () => this.debts().length },
     { id: 'personal',  label: 'Personal', count: () => this.debts().filter(d => d.type === DebtType.Personal).length },
-    { id: 'household', label: 'Hogar',    count: () => this.debts().filter(d => d.type === DebtType.Household).length },
+    { id: 'household', label: 'Hogar',    count: () => this.debts().filter(d => this.isHouseholdDebt(d)).length },
     { id: 'overdue',   label: 'Vencidas', count: () => this.overdueCount() },
   ];
 
@@ -84,7 +91,7 @@ export class DebtsComponent implements OnInit {
     const all = this.debts();
     switch (this.activeTab()) {
       case 'personal':  return all.filter(d => d.type === DebtType.Personal);
-      case 'household': return all.filter(d => d.type === DebtType.Household);
+      case 'household': return all.filter(d => this.isHouseholdDebt(d));
       case 'overdue':   return all.filter(d => d.status === DebtStatus.Overdue);
       default:          return all;
     }
@@ -100,7 +107,36 @@ export class DebtsComponent implements OnInit {
   }
 
   setTab(tab: DebtTab): void { this.activeTab.set(tab); }
+  private isHouseholdDebt(debt: Debt): boolean {
+    const householdId = this.householdPortfolioId();
+    return (
+      debt.type === DebtType.Household ||
+      debt.is_shared === true ||
+      (!!householdId && debt.portfolio_id === householdId)
+    );
+  }
+  onDebtTypeChanged(): void {
+    const type = this.debtForm.controls.type.value;
+    const isHousehold = type === DebtType.Household;
 
+    if (isHousehold) {
+      this.debtForm.controls.is_shared.setValue(true);
+      this.debtForm.controls.is_shared.disable({ emitEvent: false });
+      const hid = this.householdPortfolioId();
+      if (hid) {
+        this.debtForm.controls.portfolio_id.setValue(hid);
+      }
+      this.debtForm.controls.portfolio_id.disable({ emitEvent: false });
+      return;
+    }
+
+    if (this.debtForm.controls.is_shared.disabled) {
+      this.debtForm.controls.is_shared.enable({ emitEvent: false });
+    }
+    if (this.debtForm.controls.portfolio_id.disabled) {
+      this.debtForm.controls.portfolio_id.enable({ emitEvent: false });
+    }
+  }
   // ── Modal deuda ───────────────────────────────
   openCreateDebtModal(): void {
     this.editingDebtId.set(null);
@@ -111,6 +147,7 @@ export class DebtsComponent implements OnInit {
       description: '', is_shared: false, status: DebtStatus.Active,
     });
     this.showDebtFormModal.set(true);
+    this.onDebtTypeChanged();
   }
 
   openEditDebtModal(debt: Debt): void {
@@ -130,8 +167,8 @@ export class DebtsComponent implements OnInit {
       status:        debt.status,
     });
     this.showDebtFormModal.set(true);
+    this.onDebtTypeChanged();
   }
-
   closeDebtFormModal(): void {
     this.showDebtFormModal.set(false);
     this.editingDebtId.set(null);
@@ -257,3 +294,9 @@ export class DebtsComponent implements OnInit {
     return Boolean(c.invalid && (c.dirty || c.touched));
   }
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-<div class="min-h-full bg-gray-50 dark:bg-gray-950 pt-6 px-4 md:px-6 pb-24 lg:pb-8">
+﻿<div class="min-h-full bg-gray-50 dark:bg-gray-950 pt-6 px-4 md:px-6 pb-24 lg:pb-8">
 
   <!-- ══════════════════════════════════════════
        HEADER
@@ -160,9 +160,14 @@
                   {{ debt.creditor || 'Sin acreedor definido' }}
                 </p>
               </div>
-              <span class="f360-badge flex-shrink-0 {{ getTypeBadgeClass(debt.type) }}">
-                {{ getTypeLabel(debt.type) }}
-              </span>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <span class="f360-badge {{ getTypeBadgeClass(debt.type) }}">
+                  {{ getTypeLabel(debt.type) }}
+                </span>
+                @if (currentUserId() && debt.user_id !== currentUserId()) {
+                  <span class="f360-badge bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-200"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 11c1.66 0 3-1.57 3-3.5S17.66 4 16 4s-3 1.57-3 3.5S14.34 11 16 11z"/><path d="M8 11c1.66 0 3-1.57 3-3.5S9.66 4 8 4 5 5.57 5 7.5 6.34 11 8 11z"/><path d="M2 20c0-2.76 2.69-5 6-5"/><path d="M22 20c0-2.76-2.69-5-6-5"/><path d="M9 20c0-2.76 3.13-5 7-5s7 2.24 7 5"/></svg> Pareja</span>
+                }
+              </div>
             </div>
 
             <!-- Progreso de pago -->
@@ -462,11 +467,16 @@
           <!-- Tipo -->
           <div>
             <label class="f360-label">Tipo <span class="text-red-500">*</span></label>
-            <select class="f360-select" formControlName="type">
+            <select class="f360-select" formControlName="type" (change)="onDebtTypeChanged()">
               @for (option of debtTypeOptions; track option.value) {
                 <option [ngValue]="option.value">{{ option.label }}</option>
               }
             </select>
+            @if (debtForm.controls.type.value === DebtType.Household) {
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Deuda de hogar: se comparte automáticamente con tu pareja y se asigna al portafolio Hogar.
+              </p>
+            }
           </div>
 
           <!-- Estado -->
@@ -540,8 +550,8 @@
 
           <!-- Compartida -->
           <div class="md:col-span-2">
-            <label class="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" class="w-4 h-4 rounded accent-blue-700 cursor-pointer" formControlName="is_shared" />
+            <label class="flex items-center gap-3 group" [class.cursor-pointer]="!debtForm.controls.is_shared.disabled" [class.cursor-not-allowed]="debtForm.controls.is_shared.disabled" [class.opacity-60]="debtForm.controls.is_shared.disabled">
+              <input type="checkbox" class="w-4 h-4 rounded accent-blue-700" [class.cursor-pointer]="!debtForm.controls.is_shared.disabled" formControlName="is_shared" />
               <span class="text-sm font-semibold text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
                 Deuda compartida con pareja
               </span>
@@ -571,3 +581,7 @@
     </div>
   </div>
 }
+
+
+
+

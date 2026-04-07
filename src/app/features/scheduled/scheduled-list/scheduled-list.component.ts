@@ -1,7 +1,18 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, ViewChild } from '@angular/core';
+﻿import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { ScheduledPayment, ScheduledService } from '../../../core/services/scheduled.service';
+import {
+  ScheduledPayment,
+  ScheduledService,
+} from '../../../core/services/scheduled.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
 import { CategoryType } from '../../../domain/models/transaction.model';
 import { CurrencyCopPipe } from '../../../shared/pipes/currency-cop.pipe';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -10,15 +21,34 @@ import { BankLogoComponent } from '../../../shared/components/bank-logo/bank-log
 @Component({
   selector: 'app-scheduled-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, CurrencyCopPipe, ConfirmDialogComponent, BankLogoComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    CurrencyCopPipe,
+    ConfirmDialogComponent,
+    BankLogoComponent,
+  ],
   templateUrl: './scheduled-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScheduledListComponent implements OnInit {
   private readonly scheduledService = inject(ScheduledService);
+  private readonly supabase = inject(SupabaseService);
 
-  readonly scheduledPayments = computed(() => this.scheduledService.scheduledPayments());
+  readonly scheduledPayments = computed(() =>
+    this.scheduledService.scheduledPayments(),
+  );
   readonly isLoading = computed(() => this.scheduledService.isLoading());
+
+  readonly currentUserId = computed(() => this.supabase.currentUser()?.id ?? null);
+  readonly partnerId = computed(() => this.supabase.userProfile()?.partner_id ?? null);
+
+  readonly householdPayments = computed(() =>
+    this.scheduledPayments().filter((p) => (p.portfolio?.type ?? '') === 'household'),
+  );
+  readonly personalPayments = computed(() =>
+    this.scheduledPayments().filter((p) => (p.portfolio?.type ?? '') !== 'household'),
+  );
 
   @ViewChild(ConfirmDialogComponent) confirmDialog!: ConfirmDialogComponent;
 
@@ -41,6 +71,26 @@ export class ScheduledListComponent implements OnInit {
     return this.categoryIcons[category] ?? '📅';
   }
 
+  getOwnerLabel(payment: ScheduledPayment): string {
+    const me = this.currentUserId();
+    const partner = this.partnerId();
+
+    if (me && payment.user_id === me) return 'Tú';
+    if (partner && payment.user_id === partner) return 'Pareja';
+    return 'Otro';
+  }
+
+  getOwnerBadgeClass(payment: ScheduledPayment): string {
+    const label = this.getOwnerLabel(payment);
+    if (label === 'Tú') {
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200';
+    }
+    if (label === 'Pareja') {
+      return 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/30 dark:text-fuchsia-200';
+    }
+    return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200';
+  }
+
   getNextDateLabel(dayOfMonth: number): string {
     const now = new Date();
     const year = now.getFullYear();
@@ -56,7 +106,11 @@ export class ScheduledListComponent implements OnInit {
       const nextYear = nextMonth > 11 ? year + 1 : year;
       const normalizedNextMonth = nextMonth > 11 ? 0 : nextMonth;
       const daysInNextMonth = new Date(nextYear, normalizedNextMonth + 1, 0).getDate();
-      next = new Date(nextYear, normalizedNextMonth, Math.min(dayOfMonth, daysInNextMonth));
+      next = new Date(
+        nextYear,
+        normalizedNextMonth,
+        Math.min(dayOfMonth, daysInNextMonth),
+      );
     }
 
     return next.toLocaleDateString('es-CO', {
@@ -76,7 +130,7 @@ export class ScheduledListComponent implements OnInit {
       message: `¿Eliminar el pago «${payment.concept}»? Esta acción no se puede deshacer.`,
       type: 'danger',
       confirmLabel: 'Eliminar',
-      cancelLabel: 'Cancelar'
+      cancelLabel: 'Cancelar',
     });
 
     if (confirmed) {

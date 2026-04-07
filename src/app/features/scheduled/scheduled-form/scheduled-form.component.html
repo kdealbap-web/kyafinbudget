@@ -53,7 +53,7 @@
           >
             <option value="">Selecciona un portafolio</option>
             @for (portfolio of portfolios(); track portfolio.id) {
-              <option [value]="portfolio.id">{{ portfolio.name }}</option>
+              <option [value]="portfolio.id">{{ portfolio.name }} · {{ portfolio.type === 'household' ? 'Hogar' : 'Personal' }}</option>
             }
           </select>
           @if (hasError('portfolio_id')) {
@@ -199,4 +199,6 @@
     </form>
   </div>
 </div>
+
+
 

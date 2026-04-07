@@ -97,18 +97,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   isLoading = signal(false);
   selectedYear = signal(new Date().getFullYear());
-  selectedMonth = signal<number | null>(null);
+  selectedMonth = signal<number | null>(new Date().getMonth());
   /** FIX #1: tipado estricto — nunca más "Object is of type unknown" */
   transactions = signal<Transaction[]>([]);
   kevinId = signal<string>('');
   angelyId = signal<string>('');
   // —— Wedding widget ———————————————————————————————————————————————————————————————
   weddingBudget = signal<WeddingBudgetWidget | null>(null);
-  weddingPendingCount = signal(0);
   upcomingWeddingPayments = signal<UpcomingWeddingPayment[]>([]);
   weddingLoading = signal(false);
 
   MONTHS_LIST = MONTHS;
+
+  periodLabel = computed(() => {
+    const year = this.selectedYear();
+    const month = this.selectedMonth();
+    if (month === null) return `Año ${year}`;
+    return `${MONTHS[month]} ${year}`;
+  });
+
 
   todayDateLong = new Date().toLocaleDateString('es-CO', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -300,7 +307,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       const budget = (budgets ?? [])[0] as (Pick<WeddingBudgetWidget, 'id' | 'event_name' | 'event_date' | 'total_budget' | 'status'>) | undefined;
       if (!budget?.id) {
         this.weddingBudget.set(null);
-        this.weddingPendingCount.set(0);
         this.upcomingWeddingPayments.set([]);
         return;
       }
@@ -342,9 +348,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
 
       const pendingRows = rows.filter((r) => r.status === 'pending' || r.status === 'partial');
-      this.weddingPendingCount.set(pendingRows.length);
-
-      const upcoming = pendingRows
+const upcoming = pendingRows
         .slice()
         .sort((a, b) => {
           const ad = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
@@ -364,8 +368,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     } catch (err) {
       console.error('Error cargando widget de boda:', err);
       this.weddingBudget.set(null);
-      this.weddingPendingCount.set(0);
-      this.upcomingWeddingPayments.set([]);
+        this.upcomingWeddingPayments.set([]);
     } finally {
       this.weddingLoading.set(false);
     }
@@ -578,6 +581,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 }
+
+
+
+
+
 
 
 
