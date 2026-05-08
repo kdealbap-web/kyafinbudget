@@ -1,49 +1,57 @@
-﻿<div class="pt-6 px-4 md:px-6 pb-24 lg:pb-6" style="color: var(--color-text-primary)">
-<!-- HEADER -->
-<div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+﻿<div class="pt-6 px-4 md:px-6 pb-24 lg:pb-6 max-w-[1280px] mx-auto" style="color: var(--color-text-primary)">
 
-    <!-- Saludo -->
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {{ greeting() }} 👋
-        </h1>
-        <p class="text-gray-500 dark:text-gray-400 text-sm capitalize">
-            {{ todayDateLong }}
-        </p>
-        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-          Mostrando: <span class="font-semibold text-gray-600 dark:text-gray-300">{{ periodLabel() }}</span>
-        </p>
-    </div>
+<!-- ════════ HEADER editorial ════════ -->
+<section class="f360-reveal mb-6">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
 
-    <!-- Selector período -->
-    <div class="flex flex-col gap-2">
+        <!-- Saludo editorial -->
+        <div>
+            <p class="f360-eyebrow text-ink-500 dark:text-gray-400">
+                Resumen · <span class="f360-num">{{ todayDateLong }}</span>
+            </p>
+            <h1 class="f360-display text-[34px] sm:text-[44px] md:text-[52px] leading-[0.95] tracking-tight mt-2 text-ink-900 dark:text-gray-50 font-light">
+                {{ greeting().split(',')[0] }},
+                <span class="italic font-medium">{{ greeting().includes(',') ? greeting().split(',').slice(1).join(',').trim() : 'bienvenido' }}.</span>
+            </h1>
+            <p class="text-[13px] sm:text-[14px] text-ink-500 dark:text-gray-400 mt-2.5">
+                Mostrando: <span class="font-medium text-ink-900 dark:text-gray-100">{{ periodLabel() }}</span>
+            </p>
+        </div>
+
         <!-- Selector año -->
-        <div class="flex items-center gap-2 justify-end">
+        <div class="flex items-center gap-2 self-start md:self-end">
             <button (click)="changeYear(-1)"
-                class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors">
-                &larr; </button>
-            <span class="font-semibold text-gray-800 dark:text-gray-100 w-12 text-center">{{ selectedYear() }}</span>
+                aria-label="Año anterior"
+                class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-hairline hover:shadow-card text-ink-700 dark:bg-gray-800 dark:text-gray-300 transition-shadow cursor-pointer">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
+            </button>
+            <span class="f360-num font-semibold text-ink-900 dark:text-gray-100 w-14 text-center">{{ selectedYear() }}</span>
             <button (click)="changeYear(1)"
-                class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors">
-                &rarr; </button>
-        </div>
-        <!-- Tabs meses scrollable -->
-        <div class="flex gap-1 overflow-x-auto pb-1 max-w-full md:max-w-md scrollbar-hide">
-            <button (click)="selectMonth(null)"
-                class="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
-                [ngClass]="selectedMonth() === null ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'">
-                Todos
+                aria-label="Año siguiente"
+                class="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-hairline hover:shadow-card text-ink-700 dark:bg-gray-800 dark:text-gray-300 transition-shadow cursor-pointer">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
             </button>
-            @for (mes of MONTHS_LIST; track $index) {
-            <button (click)="selectMonth($index)"
-                class="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors capitalize"
-                [ngClass]="selectedMonth() === $index ? 'bg-primary text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'">
-                {{ mes.slice(0,3) }}
-            </button>
-            }
         </div>
     </div>
-</div>
+
+    <!-- Tabs meses scrollable -->
+    <div class="mt-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+        <button (click)="selectMonth(null)"
+            class="px-4 py-1.5 rounded-full text-[12.5px] font-medium whitespace-nowrap transition-colors cursor-pointer"
+            [ngClass]="selectedMonth() === null ? 'bg-blue-900 text-cream shadow-card ring-1 ring-gold-500/30' : 'bg-white shadow-hairline text-ink-500 hover:text-ink-900 dark:bg-gray-800 dark:text-gray-400'">
+            Todos
+        </button>
+        @for (mes of MONTHS_LIST; track $index) {
+        <button (click)="selectMonth($index)"
+            class="px-4 py-1.5 rounded-full text-[12.5px] font-medium whitespace-nowrap transition-colors capitalize cursor-pointer"
+            [ngClass]="selectedMonth() === $index ? 'bg-blue-900 text-cream shadow-card ring-1 ring-gold-500/30' : 'bg-white shadow-hairline text-ink-500 hover:text-ink-900 dark:bg-gray-800 dark:text-gray-400'">
+            {{ mes.slice(0,3) }}
+        </button>
+        }
+    </div>
+
+    <div class="f360-rule-ed mt-6"></div>
+</section>
 
 <!-- LOADING STATE -->
 @if (isLoading()) {
@@ -60,150 +68,179 @@
 
 @if (!isLoading()) {
 
-<!-- KPI CARDS -->
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<!-- ════════ KPI CARDS editoriales ════════ -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8 f360-reveal f360-reveal-d2">
 
-    <!-- Card Gastos -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border-l-4 border-red-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Gastos del período</span>
-            <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center text-lg shadow-inner">
-                💸
-            </div>
+    <!-- Card Gastos del período (excluye pagos del módulo de boda) -->
+    <article class="f360-stat-blue f360-stat-rose dark:bg-gray-800">
+        <div class="flex items-center justify-between">
+            <span class="f360-eyebrow text-ink-500 dark:text-gray-400">Gastos del período</span>
+            <span class="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-500/10 grid place-items-center text-rose-700 dark:text-rose-300">
+                <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
+            </span>
         </div>
-        <p class="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100 truncate" title="{{ totalExpenses() | currencyCop }}">
+        <p class="f360-num text-[22px] sm:text-[26px] font-semibold tracking-tight text-ink-900 dark:text-gray-100 mt-3 truncate" title="{{ totalExpenses() | currencyCop }}">
             {{ totalExpenses() | currencyCop }}
         </p>
-    </div>
+        <p class="text-[10.5px] text-ink-500 dark:text-gray-400 mt-1">Hogar · sin pagos de boda</p>
+    </article>
 
     <!-- Card Ingresos -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border-l-4 border-green-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Ingresos del período</span>
-            <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-lg shadow-inner">
-                💰
-            </div>
+    <article class="f360-stat-blue f360-stat-emerald dark:bg-gray-800">
+        <div class="flex items-center justify-between">
+            <span class="f360-eyebrow text-ink-500 dark:text-gray-400">Ingresos del período</span>
+            <span class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 grid place-items-center text-emerald-700 dark:text-emerald-300">
+                <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+            </span>
         </div>
-        <p class="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100 truncate" title="{{ totalIncome() | currencyCop }}">
+        <p class="f360-num text-[22px] sm:text-[26px] font-semibold tracking-tight text-ink-900 dark:text-gray-100 mt-3 truncate" title="{{ totalIncome() | currencyCop }}">
             {{ totalIncome() | currencyCop }}
         </p>
-    </div>
+    </article>
 
     <!-- Card Balance -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Balance</span>
-            <div class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-lg shadow-inner">
-                ⚖️
-            </div>
+    <article class="f360-stat-blue dark:bg-gray-800">
+        <div class="flex items-center justify-between">
+            <span class="f360-eyebrow text-ink-500 dark:text-gray-400">Balance</span>
+            <span class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 grid place-items-center text-blue-700 dark:text-blue-300">
+                <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </span>
         </div>
-        <p class="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100 truncate" [class.text-red-600]="balance() < 0"
-            title="{{ balance() | currencyCop }}">
+        <p class="f360-num text-[22px] sm:text-[26px] font-semibold tracking-tight mt-3 truncate"
+           [class.text-red-600]="balance() < 0"
+           [class.text-ink-900]="balance() >= 0"
+           [class.dark:text-gray-100]="balance() >= 0"
+           title="{{ balance() | currencyCop }}">
             {{ balance() | currencyCop }}
         </p>
-    </div>
+    </article>
 
     <!-- Card Ahorro -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border-l-4 border-amber-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Ahorro (%)</span>
-            <div class="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-lg shadow-inner">
-                🎯
-            </div>
+    <article class="f360-stat-blue f360-stat-gold dark:bg-gray-800">
+        <div class="flex items-center justify-between">
+            <span class="f360-eyebrow text-ink-500 dark:text-gray-400">Tasa de ahorro</span>
+            <span class="w-9 h-9 rounded-xl bg-gold-50 dark:bg-gold-500/10 grid place-items-center text-gold-700 dark:text-gold-400 ring-1 ring-gold-200 dark:ring-gold-500/20">
+                <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </span>
         </div>
-        <p class="text-2xl font-bold font-mono text-gray-900 dark:text-gray-100 truncate">
+        <p class="f360-num text-[22px] sm:text-[26px] font-semibold tracking-tight text-ink-900 dark:text-gray-100 mt-3 truncate">
             @if (totalIncome() > 0) {
-            {{ (balance() > 0 ? (balance() / totalIncome()) * 100 : 0) | number:'1.1-1' }}%
+            {{ (balance() > 0 ? (balance() / totalIncome()) * 100 : 0) | number:'1.1-1' }}<span class="text-ink-300">%</span>
             } @else {
-            0.0%
+            0.0<span class="text-ink-300">%</span>
             }
         </p>
-    </div>
+    </article>
 
 </div>
 
-<!-- WEDDING WIDGET -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+<!-- ════════ WEDDING EMBLEM ════════ -->
+<div class="mb-8 f360-reveal f360-reveal-d3">
   <a
     routerLink="/wedding"
-    class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow block"
+    class="block group relative overflow-hidden rounded-[20px] bg-gradient-to-br from-terra-100 via-cream to-gold-50 dark:from-terra-700/30 dark:via-gray-800 dark:to-gold-700/10 ring-1 ring-terra-100 dark:ring-terra-700/40 p-5 sm:p-6 transition hover:shadow-card-hover"
   >
-    <div class="flex items-start justify-between gap-4 mb-4">
-      <div class="min-w-0">
-        <h3 class="font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-          <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.65-7 10-7 10z"/></svg> Gastos de boda
-</h3>
+    <span class="absolute -right-10 -top-10 w-44 h-44 rounded-full border border-terra-300/40 dark:border-terra-500/20 pointer-events-none"></span>
+    <span class="absolute -right-2 top-6 w-28 h-28 rounded-full border border-gold-400/40 dark:border-gold-500/20 pointer-events-none"></span>
+
+    <div class="relative flex items-start gap-4 sm:gap-6 mb-4">
+      <!-- Símbolo nupcial: dos anillos entrelazados -->
+      <div class="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-terra-500 to-terra-700 grid place-items-center ring-4 ring-terra-100 dark:ring-terra-700/30">
+        <svg viewBox="0 0 56 32" class="w-8 sm:w-9 h-auto text-gold-200" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="20" cy="16" r="11"/>
+          <circle cx="36" cy="16" r="11"/>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="f360-eyebrow text-terra-700 dark:text-terra-300">Tu boda · 12 sep 2026</p>
         @if (weddingBudget()) {
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
-            {{ weddingBudget()!.event_name }} · {{ weddingBudget()!.event_date | date: 'yyyy-MM-dd' }}
+          <h3 class="font-display text-[20px] sm:text-[24px] tracking-tight mt-1 text-ink-900 dark:text-gray-100 leading-tight">
+            {{ weddingBudget()!.event_name }}
+          </h3>
+          <p class="text-[12px] sm:text-[12.5px] text-ink-500 dark:text-gray-400 mt-1 f360-num">
+            {{ weddingBudget()!.event_date | date: 'longDate' }}
           </p>
         } @else {
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Sin presupuesto activo</p>
+          <h3 class="font-display text-[20px] sm:text-[24px] tracking-tight mt-1 text-ink-900 dark:text-gray-100 italic font-light">
+            Crear el tablero…
+          </h3>
+          <p class="text-[12px] text-ink-500 dark:text-gray-400 mt-1">Sin presupuesto activo</p>
         }
       </div>
-      <div class="text-gray-400 text-xl leading-none">→</div>
+      <div class="hidden sm:flex shrink-0 items-center gap-2 text-[12.5px] font-medium text-terra-700 dark:text-terra-300 group-hover:gap-3 transition-all">
+        Abrir tablero
+        <span class="w-9 h-9 rounded-full bg-terra-500 text-cream grid place-items-center">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </div>
     </div>
 
     @if (weddingLoading()) {
-      <div class="animate-pulse space-y-3">
-        <div class="h-5 bg-gray-100 dark:bg-gray-700 rounded w-2/3"></div>
-        <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded w-full"></div>
-        <div class="h-3 bg-gray-100 dark:bg-gray-700 rounded w-5/6"></div>
+      <div class="animate-pulse space-y-3 relative">
+        <div class="h-5 bg-terra-100/60 dark:bg-terra-700/30 rounded w-2/3"></div>
+        <div class="h-3 bg-terra-100/60 dark:bg-terra-700/30 rounded w-full"></div>
+        <div class="h-3 bg-terra-100/60 dark:bg-terra-700/30 rounded w-5/6"></div>
       </div>
     } @else {
       @if (weddingBudget()) {
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Presupuesto</p>
-            <p class="font-mono font-bold text-gray-900 dark:text-gray-100">{{ weddingBudget()!.total_budget | currencyCop }}</p>
+        <div class="relative grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-white/70 dark:bg-gray-900/40 backdrop-blur-sm rounded-xl p-3 ring-1 ring-terra-100 dark:ring-terra-700/30">
+            <p class="f360-eyebrow text-terra-700 dark:text-terra-300">Presupuesto</p>
+            <p class="f360-num font-semibold text-ink-900 dark:text-gray-100 mt-1 truncate">{{ weddingBudget()!.total_budget | currencyCop }}</p>
           </div>
-          <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Disponible</p>
-            <p class="font-mono font-bold text-gray-900 dark:text-gray-100">{{ weddingBudget()!.remaining | currencyCop }}</p>
+          <div class="bg-white/70 dark:bg-gray-900/40 backdrop-blur-sm rounded-xl p-3 ring-1 ring-terra-100 dark:ring-terra-700/30">
+            <p class="f360-eyebrow text-terra-700 dark:text-terra-300">Disponible</p>
+            <p class="f360-num font-semibold text-ink-900 dark:text-gray-100 mt-1 truncate">{{ weddingBudget()!.remaining | currencyCop }}</p>
           </div>
-          <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Gastado</p>
-            <p class="font-mono font-bold text-emerald-600">{{ weddingBudget()!.total_spent | currencyCop }}</p>
+          <div class="bg-white/70 dark:bg-gray-900/40 backdrop-blur-sm rounded-xl p-3 ring-1 ring-terra-100 dark:ring-terra-700/30">
+            <p class="f360-eyebrow text-terra-700 dark:text-terra-300">Gastado</p>
+            <p class="f360-num font-semibold text-emerald-700 dark:text-emerald-400 mt-1 truncate">{{ weddingBudget()!.total_spent | currencyCop }}</p>
           </div>
-          <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Pendiente</p>
-            <p class="font-mono font-bold text-amber-600">{{ weddingBudget()!.total_pending | currencyCop }}</p>
+          <div class="bg-white/70 dark:bg-gray-900/40 backdrop-blur-sm rounded-xl p-3 ring-1 ring-terra-100 dark:ring-terra-700/30">
+            <p class="f360-eyebrow text-terra-700 dark:text-terra-300">Pendiente</p>
+            <p class="f360-num font-semibold text-gold-700 dark:text-gold-400 mt-1 truncate">{{ weddingBudget()!.total_pending | currencyCop }}</p>
           </div>
         </div>
 
-        <div class="mt-4">
-          <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <span>Progreso</span>
-            <span class="font-semibold">{{ getWeddingSpendingPercentage() }}%</span>
+        <div class="relative mt-5">
+          <div class="flex items-center justify-between text-[11px] uppercase tracking-[0.14em] text-terra-700 dark:text-terra-300 mb-2">
+            <span class="font-medium">Progreso</span>
+            <span class="f360-num font-semibold text-ink-900 dark:text-gray-100">{{ getWeddingSpendingPercentage() }}%</span>
           </div>
-          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+          <div class="w-full bg-terra-100/60 dark:bg-terra-700/20 rounded-full h-1.5 overflow-hidden">
             <div
-              class="bg-emerald-500 h-2.5 rounded-full transition-all"
+              class="h-1.5 rounded-full bg-gradient-to-r from-terra-500 to-gold-500 transition-all duration-700"
               [style.width.%]="getWeddingSpendingPercentage()"
             ></div>
           </div>
         </div>
 
         @if (upcomingWeddingPayments().length) {
-          <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-            <p class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Próximos vencimientos</p>
+          <div class="relative mt-5 pt-4 border-t border-terra-200/60 dark:border-terra-700/30">
+            <p class="f360-eyebrow text-terra-700 dark:text-terra-300 mb-3 flex items-center gap-2">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              Próximos vencimientos
+            </p>
             <div class="space-y-2">
               @for (p of upcomingWeddingPayments(); track p.id) {
-                <div class="flex items-center justify-between gap-3">
-                  <div class="min-w-0">
-                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100 truncate">{{ p.provider_name }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ p.due_date ? (p.due_date | date:'yyyy-MM-dd') : 'Sin fecha' }}
-                    </p>
+                <div class="flex items-center justify-between gap-3 py-1">
+                  <div class="min-w-0 flex items-center gap-2.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gold-500 shrink-0"></span>
+                    <div class="min-w-0">
+                      <p class="text-[13px] font-medium text-ink-900 dark:text-gray-100 truncate">{{ p.provider_name }}</p>
+                      <p class="text-[11px] text-ink-500 dark:text-gray-400 f360-num">
+                        {{ p.due_date ? (p.due_date | date:'longDate') : 'Sin fecha' }}
+                      </p>
+                    </div>
                   </div>
-                  <p class="text-sm font-mono font-semibold text-amber-600 shrink-0">{{ p.remaining | currencyCop }}</p>
+                  <p class="text-[13px] f360-num font-semibold text-gold-700 dark:text-gold-400 shrink-0">{{ p.remaining | currencyCop }}</p>
                 </div>
               }
             </div>
           </div>
         }
       } @else {
-        <div class="text-sm text-gray-500 dark:text-gray-400">
+        <div class="relative text-sm text-ink-500 dark:text-gray-400 italic font-display">
           Crea un presupuesto y agrega gastos para ver el resumen aquí.
         </div>
       }
@@ -211,174 +248,199 @@
   </a>
 </div>
 
-<!-- GRÁFICAS -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-
-    <!-- Gastos por mes -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
-        <h3 class="font-semibold text-gray-800 dark:text-gray-100 w-full mb-4">
-            📊 Gastos por mes
-        </h3>
-        <div class="w-full relative h-[250px] flex justify-center">
-            <canvas #barCanvas></canvas>
-        </div>
-    </div>
-
-    <!-- Kevin vs Angely -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[300px]">
-        <h3 class="font-semibold text-gray-800 dark:text-gray-100 w-full mb-4">
-            👥 Aportes: Kevin vs Angely
-        </h3>
-        <div class="relative flex items-center justify-center h-[250px] w-full">
-            <canvas #doughnutCanvas></canvas>
-            <!-- Texto centro del donut -->
-            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
-                <span class="text-xs text-gray-500 dark:text-gray-400">Total</span>
-                <span class="text-lg font-bold font-mono text-gray-800 dark:text-gray-100">
-                    {{ totalExpenses() | currencyCop }}
-                </span>
-            </div>
-        </div>
-    </div>
-
+<!-- Canvas refs ocultos: el componente TS los usa pero ya no se muestran -->
+<div class="hidden" aria-hidden="true">
+    <canvas #barCanvas></canvas>
+    <canvas #doughnutCanvas></canvas>
+    <canvas #lineCanvas></canvas>
 </div>
 
-<!-- Evolución histórica FULL WIDTH -->
-<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm mb-8 flex flex-col justify-center min-h-[350px]">
-    <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-4">
-        📈 Evolución histórica {{ selectedYear() }}
-    </h3>
-    <div class="w-full relative h-[300px] flex justify-center">
-        <canvas #lineCanvas></canvas>
-    </div>
-</div>
-
-<!-- TOP CATEGORÍAS + SUGERENCIAS -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<!-- ════════ TOP CATEGORÍAS + SUGERENCIAS editoriales ════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-8 f360-reveal f360-reveal-d6">
 
     <!-- Top 5 Categorías -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm h-full max-h-[400px] overflow-y-auto custom-scrollbar">
-        <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-6 sticky top-0 bg-white dark:bg-gray-800 z-10 py-1">
-            🏆 Top categorías de gasto
-        </h3>
-
-        @if (topCategories().length === 0) {
-        <div class="text-center py-8 text-gray-400">
-            <p>No hay gastos registrados en este período.</p>
-        </div>
-        }
-
-        @for (cat of topCategories(); track cat.name) {
-        <div class="flex items-center gap-4 mb-5 last:mb-0 group">
-            <div
-                class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-2xl shadow-sm border border-gray-100 dark:border-gray-700 group-hover:scale-105 transition-transform">
-                {{ cat.emoji }}
+    <article class="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 shadow-card border border-ink-100/60 dark:border-gray-700/40 flex flex-col h-full max-h-[440px]">
+        <header class="flex items-start justify-between gap-3 mb-1 sticky top-0 bg-white dark:bg-gray-800 z-10">
+            <div class="min-w-0">
+                <p class="f360-eyebrow text-ink-500 dark:text-gray-400">Ranking del período</p>
+                <h3 class="font-display text-[20px] sm:text-[22px] font-light tracking-tight text-ink-900 dark:text-gray-100 mt-0.5">
+                    Top <span class="italic">categorías</span>
+                </h3>
             </div>
-            <div class="flex-1 min-w-0">
-                <div class="flex justify-between items-baseline mb-2 gap-2">
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
-                        {{ cat.name }}
+            <span class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/10 grid place-items-center text-blue-700 dark:text-blue-300 ring-1 ring-blue-100 dark:ring-blue-500/20 shrink-0">
+                <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M9 22V12h6v10"/><path d="M3 22h18"/></svg>
+            </span>
+        </header>
+        <div class="f360-rule-ed mt-3 mb-4 opacity-60"></div>
+
+        <div class="overflow-y-auto custom-scrollbar -mx-1 px-1">
+            @if (topCategories().length === 0) {
+            <div class="text-center py-10 text-ink-500 dark:text-gray-400 italic font-display">
+                <p>Sin gastos registrados en este período.</p>
+            </div>
+            }
+
+            @for (cat of topCategories(); track cat.name; let i = $index) {
+            <div class="flex items-center gap-4 mb-5 last:mb-0 group">
+                <div class="relative shrink-0">
+                    <span class="w-11 h-11 rounded-xl bg-cream dark:bg-gray-700 grid place-items-center text-[22px] ring-1 ring-ink-100/60 dark:ring-gray-700 group-hover:scale-[1.04] transition-transform">
+                        {{ cat.emoji }}
                     </span>
-                    <span class="text-sm font-mono font-medium text-gray-600 dark:text-gray-300 shrink-0">
-                        {{ cat.amount | currencyCop }}
+                    <span class="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-blue-900 text-cream f360-num text-[10px] font-semibold grid place-items-center ring-2 ring-white dark:ring-gray-800">
+                        {{ i + 1 }}
                     </span>
                 </div>
-                <div class="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700 shadow-inner">
-                    <div class="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
-                        [style.width.%]="cat.percentage">
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-baseline mb-2 gap-2">
+                        <span class="text-[13.5px] font-medium text-ink-900 dark:text-gray-100 truncate">
+                            {{ cat.name }}
+                        </span>
+                        <span class="text-[13px] f360-num font-semibold text-ink-700 dark:text-gray-300 shrink-0">
+                            {{ cat.amount | currencyCop }}
+                        </span>
+                    </div>
+                    <div class="h-1.5 bg-ink-100/70 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full bg-gradient-to-r from-blue-700 to-blue-500 transition-all duration-1000 ease-out"
+                            [style.width.%]="cat.percentage">
+                        </div>
                     </div>
                 </div>
             </div>
+            }
         </div>
-        }
-    </div>
+    </article>
 
     <!-- Sugerencias de Ahorro -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm h-full max-h-[400px] overflow-y-auto custom-scrollbar">
-        <h3 class="font-semibold text-gray-800 dark:text-gray-100 mb-6 sticky top-0 bg-white dark:bg-gray-800 z-10 py-1">
-            💡 Sugerencias de ahorro
-        </h3>
+    <article class="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 shadow-card border border-ink-100/60 dark:border-gray-700/40 flex flex-col h-full max-h-[440px]">
+        <header class="flex items-start justify-between gap-3 mb-1 sticky top-0 bg-white dark:bg-gray-800 z-10">
+            <div class="min-w-0">
+                <p class="f360-eyebrow text-ink-500 dark:text-gray-400">Recomendaciones</p>
+                <h3 class="font-display text-[20px] sm:text-[22px] font-light tracking-tight text-ink-900 dark:text-gray-100 mt-0.5">
+                    Sugerencias de <span class="italic">ahorro</span>
+                </h3>
+            </div>
+            <span class="w-9 h-9 rounded-xl bg-gold-50 dark:bg-gold-500/10 grid place-items-center text-gold-700 dark:text-gold-400 ring-1 ring-gold-200 dark:ring-gold-500/20 shrink-0">
+                <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.5.5 1 1.5 1 2.5h6c0-1 .5-2 1-2.5A6 6 0 0 0 12 3z"/></svg>
+            </span>
+        </header>
+        <div class="f360-rule-ed mt-3 mb-4 opacity-60"></div>
 
-        @if (savingsSuggestions().length === 0) {
-        <div class="text-center py-12 text-gray-400 flex flex-col items-center">
-            <span class="text-5xl mb-3 animate-bounce">🎉</span>
-            <p class="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-                ¡Todo bajo control este período!
-            </p>
-        </div>
-        }
+        <div class="overflow-y-auto custom-scrollbar -mx-1 px-1">
+            @if (savingsSuggestions().length === 0) {
+            <div class="text-center py-12 flex flex-col items-center">
+                <span class="w-14 h-14 rounded-full bg-emerald-50 dark:bg-emerald-500/10 grid place-items-center text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-100 dark:ring-emerald-500/20 mb-3">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                <p class="font-display italic text-[15px] text-ink-700 dark:text-gray-300">
+                    Todo bajo control este período.
+                </p>
+            </div>
+            }
 
-        @for (tip of savingsSuggestions(); track tip) {
-        <div
-            class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 last:mb-0 flex items-start gap-3 shadow-sm hover:shadow-md transition-shadow">
-            <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
-            <p class="text-sm text-amber-800 font-medium leading-relaxed">{{ tip }}</p>
+            @for (tip of savingsSuggestions(); track tip) {
+            <div class="rounded-xl p-3.5 mb-3 last:mb-0 flex items-start gap-3 bg-gold-50/50 dark:bg-gold-500/5 ring-1 ring-gold-200/60 dark:ring-gold-500/15 hover:bg-gold-50 dark:hover:bg-gold-500/10 transition-colors">
+                <span class="w-7 h-7 shrink-0 rounded-full bg-gold-500/15 grid place-items-center text-gold-700 dark:text-gold-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                </span>
+                <p class="text-[13px] text-ink-700 dark:text-gold-100 font-medium leading-relaxed">{{ tip }}</p>
+            </div>
+            }
         </div>
-        }
-    </div>
+    </article>
 
 </div>
 
-<!-- TRANSACCIONES RECIENTES -->
-<div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-    <div class="flex items-center justify-between mb-6">
-        <h3 class="font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-            🕒 Transacciones recientes
-        </h3>
+<!-- ════════ TRANSACCIONES editoriales ════════ -->
+<article class="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 shadow-card border border-ink-100/60 dark:border-gray-700/40 f360-reveal f360-reveal-d7">
+    <header class="flex items-start justify-between gap-3 mb-1">
+        <div class="min-w-0">
+            <p class="f360-eyebrow text-ink-500 dark:text-gray-400">Movimientos</p>
+            <h3 class="font-display text-[20px] sm:text-[24px] font-light tracking-tight text-ink-900 dark:text-gray-100 mt-0.5">
+                Transacciones <span class="italic">recientes</span>
+            </h3>
+        </div>
         <a routerLink="/transactions"
-            class="text-sm font-medium text-primary hover:text-blue-700 hover:underline transition-colors flex items-center gap-1">
-            Ver todas <span aria-hidden="true">&rarr;</span>
+            class="hidden sm:inline-flex items-center gap-2 text-[12.5px] font-medium text-blue-700 dark:text-blue-300 hover:gap-3 transition-all shrink-0">
+            Ver todas
+            <span class="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-500/10 grid place-items-center ring-1 ring-blue-100 dark:ring-blue-500/20">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
         </a>
-    </div>
+    </header>
+    <div class="f360-rule-ed mt-3 mb-2 opacity-60"></div>
 
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col">
         @for (tx of recentTransactions(); track tx.id) {
-        <div
-            class="flex items-center gap-4 py-3 px-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-default border-b border-gray-50 last:border-0 relative group">
+        <div class="flex items-center gap-3 sm:gap-4 py-3 sm:py-3.5 px-1 sm:px-2 hover:bg-cream/50 dark:hover:bg-gray-700/30 transition-colors cursor-default border-b border-ink-100/50 dark:border-gray-700/40 last:border-0 group">
 
-            <!-- Avatar pagador -->
-            <div class="w-11 h-11 rounded-full flex items-center justify-center font-bold text-white flex-shrink-0 shadow-inner border-2 border-white ring-2 ring-gray-50 z-10"
-                [class.bg-blue-600]="tx.payerInitial==='K'" [class.bg-green-600]="tx.payerInitial==='A'"
-                [class.bg-gray-400]="tx.payerInitial!=='K' && tx.payerInitial!=='A'"
-                title="Pagado por {{ tx.payerName }}">
-                {{ tx.payerInitial }}
+            <!-- Avatar pagador editorial -->
+            <div class="relative shrink-0">
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center font-display italic font-medium text-cream text-[15px] ring-1 ring-white/40"
+                    [class.bg-blue-900]="tx.payerInitial==='K'"
+                    [class.bg-terra-700]="tx.payerInitial==='A'"
+                    [class.bg-ink-500]="tx.payerInitial!=='K' && tx.payerInitial!=='A'"
+                    title="Pagado por {{ tx.payerName }}">
+                    {{ tx.payerInitial }}
+                </div>
+                <span class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full grid place-items-center ring-2 ring-white dark:ring-gray-800"
+                    [class.bg-emerald-500]="tx.type==='income'"
+                    [class.bg-rose-500]="tx.type==='expense'">
+                    <svg class="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+                        @if (tx.type==='income') {
+                            <path d="M12 5v14M5 12l7-7 7 7"/>
+                        } @else {
+                            <path d="M12 19V5M5 12l7 7 7-7"/>
+                        }
+                    </svg>
+                </span>
             </div>
 
             <!-- Info -->
-            <div class="flex-1 min-w-0 flex flex-col gap-0.5 z-10">
-                <p class="font-semibold text-gray-800 dark:text-gray-100 truncate group-hover:text-primary transition-colors">
+            <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+                <p class="text-[14px] font-medium text-ink-900 dark:text-gray-100 truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                     {{ tx.concept }}
                 </p>
-                <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                    <span class="font-medium bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">{{ tx.category }}</span>
-                    <span class="text-gray-400">&bull;</span>
-                    <span class="truncate">{{ tx.date | relativeDate }}</span>
+                <div class="flex items-center gap-2 text-[11.5px] text-ink-500 dark:text-gray-400">
+                    <span class="px-1.5 py-0.5 rounded text-[10.5px] tracking-wide uppercase font-medium bg-ink-100/60 dark:bg-gray-700 text-ink-700 dark:text-gray-300">{{ tx.category }}</span>
+                    <span class="w-0.5 h-0.5 rounded-full bg-ink-300"></span>
+                    <span class="truncate f360-num">{{ tx.date | relativeDate }}</span>
                 </div>
             </div>
 
             <!-- Monto -->
-            <div class="flex flex-col items-end z-10 shrink-0">
-                <span class="font-mono font-bold text-sm tracking-tight" [class.text-red-600]="tx.type==='expense'"
-                    [class.text-green-600]="tx.type==='income'">
-                    {{ tx.type==='expense' ? '-' : '+' }}
-                    {{ tx.amount | currencyCop }}
+            <div class="flex flex-col items-end shrink-0">
+                <span class="f360-num font-semibold text-[14px] sm:text-[15px] tracking-tight"
+                    [class.text-rose-700]="tx.type==='expense'"
+                    [class.text-emerald-700]="tx.type==='income'">
+                    {{ tx.type==='expense' ? '−' : '+' }}{{ tx.amount | currencyCop }}
                 </span>
             </div>
         </div>
         }
 
         @if (recentTransactions().length === 0) {
-        <div
-            class="text-center py-10 text-gray-400 flex flex-col items-center justify-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
-            <span class="text-3xl mb-2">🤷‍♂️</span>
-            <p class="font-medium">No hay transacciones en este período</p>
+        <div class="text-center py-12 flex flex-col items-center justify-center bg-cream/40 dark:bg-gray-900/30 rounded-2xl border border-dashed border-ink-200 dark:border-gray-700">
+            <span class="w-12 h-12 rounded-full bg-white dark:bg-gray-800 grid place-items-center text-ink-500 dark:text-gray-400 ring-1 ring-ink-100 dark:ring-gray-700 mb-3">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </span>
+            <p class="font-display italic text-[15px] text-ink-700 dark:text-gray-300">
+                Sin transacciones en este período.
+            </p>
         </div>
         }
+
+        <!-- "Ver todas" móvil -->
+        <a routerLink="/transactions"
+            class="sm:hidden mt-3 mx-auto inline-flex items-center gap-2 text-[12.5px] font-medium text-blue-700 dark:text-blue-300">
+            Ver todas las transacciones
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
     </div>
-</div>
+</article>
 
 } <!-- fin @if !isLoading -->
 </div>
+
 
 
 

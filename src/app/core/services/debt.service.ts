@@ -2,10 +2,14 @@
 import { Debt, DebtStatus, DebtType } from '../../domain/models/debt.model';
 import { CategoryType, TransactionType } from '../../domain/models/transaction.model';
 import { SupabaseService } from './supabase.service';
+import { ProgressBarService } from '../../shared/services/progress-bar.service';
+import { ToastService } from '../../shared/services/toast.service';
 
 @Injectable({ providedIn: 'root' })
 export class DebtService {
   private readonly supabase = inject(SupabaseService);
+  private readonly progressBar = inject(ProgressBarService);
+  private readonly toast = inject(ToastService);
 
   readonly debts = signal<Debt[]>([]);
   readonly isLoading = signal<boolean>(false);
@@ -75,13 +79,13 @@ export class DebtService {
       this.isLoading.set(false);
     }
   }
-
   async registerPayment(debtId: string, amount: number, accountId: string): Promise<boolean> {
-    this.isLoading.set(true);
-    try {
-      const userId = this.supabase.currentUser()?.id;
-      if (!userId) throw new Error('Sin autenticacion');
+    const userId = this.supabase.currentUser()?.id;
+    if (!userId) return false;
 
+    this.isLoading.set(true);
+    this.progressBar.start();
+    try {
       const { data: debt, error: debtError } = await this.supabase.client
         .from('debts')
         .select('*')
@@ -92,42 +96,54 @@ export class DebtService {
       const debtRecord = debt as Debt;
 
       const paymentAmount = Number(amount);
-      if (paymentAmount <= 0) throw new Error('Monto invalido');
+      if (paymentAmount <= 0) throw new Error('Monto inválido');
 
       const nextPaid = Number(debtRecord.paid_amount ?? 0) + paymentAmount;
       const nextStatus = nextPaid >= Number(debtRecord.total_amount)
         ? DebtStatus.Paid
         : debtRecord.status;
 
-      const txPayload = {
-        portfolio_id: debtRecord.portfolio_id,
-        user_id: userId,
-        account_id: accountId,
-        concept: `Pago deuda: ${debtRecord.name}`,
-        amount: paymentAmount,
-        type: TransactionType.Expense,
-        category: 'Pago deuda' as unknown as CategoryType,
-        notes: debtRecord.creditor ? `Acreedor: ${debtRecord.creditor}` : null,
-        receipt_url: null,
-        date: new Date().toISOString().slice(0, 10),
-        is_scheduled: false,
-      };
-
-      const { error: txError } = await this.supabase.client
-        .from('transactions')
-        .insert(txPayload);
-      if (txError) throw txError;
-
+      // 1) Actualizar deuda
       const { error: updateError } = await this.supabase.client
         .from('debts')
         .update({ paid_amount: nextPaid, status: nextStatus })
         .eq('id', debtId);
       if (updateError) throw updateError;
 
+      // 2) Insertar transacción de gasto por pago de deuda
+      const { error: txError } = await this.supabase.client
+        .from('transactions')
+        .insert({
+          user_id: userId,
+          account_id: accountId,
+          portfolio_id: debtRecord.portfolio_id ?? null,
+          concept: `Pago deuda: ${debtRecord.name}`,
+          amount: paymentAmount,
+          type: TransactionType.Expense,
+          category: 'Pago deuda',
+          date: new Date().toISOString().slice(0, 10),
+          notes: `Acreedor: ${debtRecord.creditor ?? debtRecord.name}`,
+          receipt_url: null,
+          is_scheduled: false,
+        });
+
+      if (txError) {
+        console.warn('Pago registrado pero no se creó transacción:', txError);
+      }
+
       await this.loadDebts();
+
+      this.progressBar.complete();
+      if (nextStatus === DebtStatus.Paid) {
+        this.toast.success('¡Deuda pagada completamente!');
+      } else {
+        this.toast.success('Pago registrado correctamente.');
+      }
       return true;
     } catch (err) {
       console.error('Error registrando pago de deuda:', err);
+      this.progressBar.error();
+      this.toast.error('Error al registrar el pago de la deuda.');
       return false;
     } finally {
       this.isLoading.set(false);
@@ -170,3 +186,4 @@ export class DebtService {
     }
   }
 }
+

@@ -1,164 +1,140 @@
-﻿<div class="dark:bg-gray-950 bg-gray-50 min-h-screen p-4 md:p-8">
-  <div class="max-w-6xl mx-auto">
-    <div class="f360-page-header mb-8">
-      <div class="min-w-0">
-        <h1 class="f360-page-title flex items-center gap-2">
-          <span aria-hidden="true">💍</span>
-          <span class="truncate">Gastos de Boda</span>
-        </h1>
-        <p class="f360-page-subtitle">Presupuesto, proveedores y pagos en un solo lugar</p>
+﻿<div class="dark:bg-gray-950 bg-paper min-h-screen pb-24 lg:pb-8">
 
-        @if (currentBudget()) {
-          <div class="flex flex-wrap items-center gap-2 mt-3">
+  <!-- ════════ HERO EMBLEMÁTICO Save-The-Date ════════ -->
+  <section class="relative overflow-hidden">
+    <!-- fondo editorial terra -->
+    <div class="absolute inset-0 bg-gradient-to-br from-terra-700 via-terra-700 to-terra-900 dark:from-terra-900 dark:via-terra-900 dark:to-gray-950"></div>
+    <div class="absolute inset-0 opacity-[0.07]" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0); background-size: 22px 22px;"></div>
+
+    <!-- esquinas ornamentales -->
+    <span class="absolute top-5 left-5 w-10 h-10 border-t-2 border-l-2 border-gold-400/60 pointer-events-none"></span>
+    <span class="absolute top-5 right-5 w-10 h-10 border-t-2 border-r-2 border-gold-400/60 pointer-events-none"></span>
+    <span class="absolute bottom-5 left-5 w-10 h-10 border-b-2 border-l-2 border-gold-400/60 pointer-events-none"></span>
+    <span class="absolute bottom-5 right-5 w-10 h-10 border-b-2 border-r-2 border-gold-400/60 pointer-events-none"></span>
+
+    <div class="relative max-w-6xl mx-auto px-6 md:px-10 py-12 md:py-16">
+      <!-- eyebrow -->
+      <div class="text-center">
+        <p class="text-[11px] uppercase tracking-[0.4em] text-gold-300/90 font-medium f360-num">
+          Save · the · date
+        </p>
+
+        <!-- Símbolo nupcial: dos anillos entrelazados gold sobre fondo terra -->
+        <div class="mt-6 flex items-center justify-center gap-4">
+          <span class="h-px w-12 sm:w-24 bg-gold-400/50"></span>
+          <svg viewBox="0 0 96 44" class="w-24 sm:w-28 h-auto text-gold-300" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+            <circle cx="36" cy="22" r="18"/>
+            <circle cx="60" cy="22" r="18"/>
+          </svg>
+          <span class="h-px w-12 sm:w-24 bg-gold-400/50"></span>
+        </div>
+
+        <!-- nombres -->
+        <h1 class="font-display italic font-light text-cream mt-5 text-[34px] sm:text-[48px] md:text-[60px] leading-[0.95] tracking-tight">
+          @if (currentBudget()) {
+            {{ currentBudget()!.event_name }}
+          } @else {
+            Kevin <span class="not-italic font-thin text-gold-300/80">&middot;</span> Angely
+          }
+        </h1>
+
+        <!-- subtítulo -->
+        <p class="mt-4 text-[13px] sm:text-[14px] tracking-[0.25em] uppercase text-cream/70 font-medium">
+          Una promesa · un solo horizonte
+        </p>
+
+        <!-- pilares editoriales: dos lugares -->
+        <div class="mt-9 grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] gap-6 sm:gap-8 items-center max-w-3xl mx-auto">
+          <!-- Iglesia -->
+          <div class="text-center sm:text-right">
+            <p class="text-[10px] uppercase tracking-[0.3em] text-gold-300/80 font-medium">Ceremonia</p>
+            <p class="font-display italic text-cream text-[18px] sm:text-[20px] mt-1.5 leading-tight">
+              Parroquia<br/>San Luis Beltrán
+            </p>
+            <p class="text-[12px] text-cream/60 mt-1.5 f360-num tracking-wider">7:00 pm</p>
+          </div>
+
+          <!-- separador central con fecha -->
+          <div class="flex flex-col items-center">
+            <span class="hidden sm:block w-px h-16 bg-gold-400/40"></span>
+            <span class="block sm:hidden h-px w-20 bg-gold-400/40 my-2"></span>
+            <p class="font-display italic text-gold-300 text-[14px] tracking-[0.2em] my-2">·</p>
+            <p class="f360-num text-gold-200 text-[12px] sm:text-[13px] tracking-[0.35em]">XII · IX · MMXXVI</p>
+            <span class="hidden sm:block w-px h-16 bg-gold-400/40"></span>
+            <span class="block sm:hidden h-px w-20 bg-gold-400/40 my-2"></span>
+          </div>
+
+          <!-- Recepción -->
+          <div class="text-center sm:text-left">
+            <p class="text-[10px] uppercase tracking-[0.3em] text-gold-300/80 font-medium">Recepción</p>
+            <p class="font-display italic text-cream text-[18px] sm:text-[20px] mt-1.5 leading-tight">
+              Casona<br/>del Prado
+            </p>
+            <p class="text-[12px] text-cream/60 mt-1.5 italic">cena & celebración</p>
+          </div>
+        </div>
+
+        <!-- frase de unión -->
+        <p class="mt-10 max-w-xl mx-auto font-display italic text-cream/85 text-[14px] sm:text-[16px] leading-relaxed">
+          “Dos vidas que se eligen no se suman:<br class="hidden sm:block"/>
+          se vuelven un solo horizonte, una sola casa, un solo para siempre.”
+        </p>
+
+        <!-- chips de estado y CTAs -->
+        <div class="mt-9 flex flex-wrap items-center justify-center gap-2.5">
+          @if (currentBudget()) {
             <span
-              class="f360-badge"
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium tracking-wide ring-1"
               [ngClass]="{
-                'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200': currentBudget()!.status === 'planning',
-                'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200': currentBudget()!.status === 'in_progress',
-                'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200': currentBudget()!.status === 'completed',
-                'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200': currentBudget()!.status === 'cancelled'
+                'bg-cream/10 text-cream ring-cream/20': currentBudget()!.status === 'planning',
+                'bg-gold-400/15 text-gold-200 ring-gold-300/30': currentBudget()!.status === 'in_progress',
+                'bg-emerald-300/15 text-emerald-200 ring-emerald-300/30': currentBudget()!.status === 'completed',
+                'bg-cream/5 text-cream/60 ring-cream/10': currentBudget()!.status === 'cancelled'
               }"
             >
               <span class="w-1.5 h-1.5 rounded-full bg-current inline-block"></span>
-              @if (currentBudget()!.status === 'planning') {
-                Planificación
-              } @else if (currentBudget()!.status === 'in_progress') {
-                En progreso
-              } @else if (currentBudget()!.status === 'completed') {
-                Completado
-              } @else {
-                Cancelado
-              }
+              @if (currentBudget()!.status === 'planning') { Planificación }
+              @else if (currentBudget()!.status === 'in_progress') { En progreso }
+              @else if (currentBudget()!.status === 'completed') { Completado }
+              @else { Cancelado }
             </span>
 
-            <span class="f360-badge bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> {{ currentBudget()!.event_date | date: 'yyyy-MM-dd' }}
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-cream/10 text-cream ring-1 ring-cream/15 f360-num">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              {{ currentBudget()!.event_date | date: 'longDate' }}
             </span>
 
-            <span class="f360-badge bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-200">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Disponible: {{ budgetTotals().remaining | currencyCop }}
-            </span>
 
-            <span class="f360-badge bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Pendiente: {{ budgetTotals().pending | currencyCop }}
-            </span>
-          </div>
-        } @else {
-          <p class="text-xs text-gray-600 dark:text-gray-400 mt-3">
-            Crea o selecciona un presupuesto para habilitar gastos y pagos.
-          </p>
-        }
-      </div>
+          } @else {
+            <p class="text-[12px] text-cream/70 italic font-display">
+              Crea o selecciona un presupuesto para empezar a planear.
+            </p>
+          }
+        </div>
 
-      <div class="w-full sm:w-auto">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <button type="button" class="f360-btn-primary w-full bg-indigo-600 hover:bg-indigo-700" (click)="openBudgetForm(false)">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Nuevo presupuesto
-          </button>
-
-          <button
-            type="button"
-            class="f360-btn-danger w-full"
+        <!-- CTA único: registrar gasto del presupuesto vigente -->
+        <div class="mt-7 flex justify-center">
+          <button type="button"
+            class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-gold-500 hover:bg-gold-400 text-terra-900 font-medium text-[13px] tracking-wide transition-colors shadow-card disabled:opacity-40 disabled:cursor-not-allowed"
             (click)="openExpenseForm()"
-            [disabled]="!currentBudget()"
-            [attr.title]="!currentBudget() ? 'Primero selecciona o crea un presupuesto' : 'Registrar un gasto'"
-          >
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M7 3h10l2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/>
-              <path d="M9 9h6M9 13h6M9 17h4"/>
-            </svg>
+            [disabled]="!currentBudget()">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10l2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>
             Nuevo gasto
           </button>
         </div>
-
-        @if (!currentBudget()) {
-          <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">
-            Tip: crea el presupuesto y luego registra los gastos (ítems) y pagos.
-          </div>
-        }
       </div>
     </div>
+  </section>
+
+  <div class="max-w-6xl mx-auto px-4 md:px-8 pt-8">
 
     @if (error()) {
       <div class="f360-card border border-red-200 dark:border-red-900/40 mb-6">
         <p class="text-red-700 dark:text-red-300">{{ error() }}</p>
       </div>
     }
-    <!-- Presupuestos (tabs) -->
-    <div class="f360-card mb-6">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div class="min-w-0">
-          <label class="f360-label mb-0">Presupuesto</label>
-          <p class="text-xs text-gray-600 dark:text-gray-400">
-            @if (isLoading()) {
-              Cargando...
-            } @else {
-              {{ budgets().length }} presupuesto(s)
-            }
-          </p>
-        </div>
-
-        @if (currentBudget()) {
-          <button
-            type="button"
-            class="f360-btn-secondary !py-2 !px-4 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-700/40 dark:text-blue-200 dark:hover:bg-blue-900/20"
-            (click)="openBudgetForm(true)"
-          >
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            Editar
-          </button>
-        }
-      </div>
-
-      @if (budgets().length) {
-        <div class="mt-4 flex gap-2 overflow-x-auto pb-1">
-          @for (b of sortedBudgets(); track b.id) {
-            <button
-              type="button"
-              class="flex-shrink-0 min-w-[240px] text-left px-4 py-3 rounded-xl border transition-all duration-150 cursor-pointer active:scale-[0.99]"
-              [disabled]="isLoading()"
-              [attr.aria-current]="currentBudget()?.id === b.id ? 'page' : null"
-              [ngClass]="currentBudget()?.id === b.id
-                ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'"
-              (click)="selectBudget(b.id)"
-            >
-              <div class="flex items-center gap-2 min-w-0">
-                <span
-                  class="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                  [ngClass]="{
-                    'bg-indigo-500': b.status === 'planning',
-                    'bg-blue-300': b.status === 'in_progress',
-                    'bg-emerald-400': b.status === 'completed',
-                    'bg-gray-300': b.status === 'cancelled'
-                  }"
-                ></span>
-                <span class="text-sm font-semibold truncate">{{ b.event_name }}</span>
-              </div>
-              <div class="mt-1 text-xs opacity-80">
-                {{ b.event_date | date: 'yyyy-MM-dd' }}
-              </div>
-            </button>
-          }
-        </div>
-
-        <p class="text-xs text-gray-600 dark:text-gray-400 mt-3">
-          Tip: mantén solo 1 presupuesto en estado “En progreso” para enfocarte en el proyecto de la boda.
-        </p>
-      } @else {
-        <div class="mt-4 is-empty">
-          <p class="font-semibold">Aún no tienes un presupuesto</p>
-          <p class="text-sm">Crea el presupuesto y luego registra gastos y pagos.</p>
-          <button type="button" class="f360-btn-primary mt-3" (click)="openBudgetForm(false)">Crear presupuesto</button>
-        </div>
-      }
-    </div>
+    <!-- Selector de presupuesto eliminado: el presupuesto vigente es único y se carga
+         automáticamente vía ngOnInit (último creado / más reciente). -->
 
     <!-- Form crear presupuesto -->
     @if (showBudgetForm()) {
@@ -472,6 +448,35 @@
             <input class="f360-input" type="text" formControlName="reference_number" />
           </div>
 
+          <!-- Comprobante del pago: foto/PDF -->
+          <div class="md:col-span-2">
+            <label class="f360-label flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              Comprobante (foto o PDF, opcional)
+            </label>
+            <input
+              class="f360-input"
+              type="file"
+              accept="image/*,.pdf"
+              (change)="onReceiptFileChange($event)"
+            />
+            @if (selectedReceiptFile()) {
+              <div class="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 ring-1 ring-emerald-200 dark:ring-emerald-800/40">
+                <svg class="w-4 h-4 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <p class="text-xs text-emerald-800 dark:text-emerald-200 truncate flex-1">
+                  {{ selectedReceiptFile()!.name }} <span class="text-emerald-600 dark:text-emerald-400">· {{ formatFileSize(selectedReceiptFile()!.size) }}</span>
+                </p>
+                <button type="button" class="text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-emerald-100 text-[11px] font-medium" (click)="selectedReceiptFile.set(null)">Quitar</button>
+              </div>
+            } @else {
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Adjunta el voucher o pantallazo de la transferencia para tener evidencia del pago.</p>
+            }
+          </div>
+
           <div class="md:col-span-2">
             <label class="f360-label">Notas (opcional)</label>
             <textarea class="f360-textarea" rows="3" formControlName="notes"></textarea>
@@ -488,185 +493,328 @@
 
     <!-- Resumen -->
     @if (currentBudget()) {
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="f360-card">
-          <p class="text-sm text-gray-600 dark:text-gray-400">Presupuesto</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ budgetTotals().totalBudget | currencyCop }}</p>
-        </div>
-        <div class="f360-card">
-          <p class="text-sm text-gray-600 dark:text-gray-400">Gastado</p>
-          <p class="text-xl font-bold text-emerald-600 dark:text-emerald-300">{{ budgetTotals().spent | currencyCop }}</p>
-        </div>
-        <div class="f360-card">
-          <p class="text-sm text-gray-600 dark:text-gray-400">Pendiente</p>
-          <p class="text-xl font-bold text-amber-600 dark:text-amber-300">{{ budgetTotals().pending | currencyCop }}</p>
-        </div>
-        <div class="f360-card">
-          <p class="text-sm text-gray-600 dark:text-gray-400">Disponible</p>
-          <p class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ budgetTotals().remaining | currencyCop }}</p>
-        </div>
-      </div>
 
-      <div class="f360-card mb-6">
+
+      <div class="f360-card mb-6 p-5">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+          Progreso de pagos
+        </p>
+
         <div class="flex items-center justify-between mb-2">
-          <p class="text-sm text-gray-600 dark:text-gray-400">Progreso</p>
-          <p class="text-sm font-semibold">{{ spendingPercent() }}%</p>
-        </div>
-        <div class="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3">
-          <div
-            class="bg-emerald-500 h-3 rounded-full transition-all"
-            [style.width.%]="spendingPercent()"
-          ></div>
-        </div>
-      </div>
-      <!-- Por categoría -->
-      <div class="f360-card mb-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center gap-2">Por categoría</h2>
-          <span class="text-sm text-gray-600 dark:text-gray-400">
-            {{ categoryBreakdown().length }} categoría(s)
+          <span class="text-sm text-gray-600 dark:text-gray-400">Pagado</span>
+          <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+            {{ paymentProgress() }}%
           </span>
         </div>
 
-        @if (!categoryBreakdown().length) {
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            Aún no hay gastos para mostrar distribución.
-          </p>
-        } @else {
-          <div class="space-y-3">
-            @for (c of categoryBreakdown(); track c.id) {
-              <div class="rounded-xl border border-gray-100 dark:border-gray-800 p-4 bg-white dark:bg-gray-900 hover:shadow-sm hover:border-gray-200 dark:hover:border-gray-700 transition-all">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="min-w-0 flex items-center gap-2">
-                    <span
-                      class="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      [style.background-color]="c.color || '#6B7280'"
-                    ></span>
-                    <p class="font-semibold text-gray-900 dark:text-gray-100 truncate">
-                      {{ c.name }}
-                    </p>
-                    <span class="f360-badge bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                      {{ c.count }} item(s)
-                    </span>
-                  </div>
-                  <p class="font-bold text-gray-900 dark:text-gray-100">{{ c.planned | currencyCop }}</p>
-                </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-3">
+          <div
+            class="bg-emerald-500 h-3 rounded-full transition-all"
+            [style.width.%]="paymentProgress()"
+          ></div>
+        </div>
 
-                <div class="mt-3">
-                  <div class="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                    <div
-                      class="h-2 rounded-full"
-                      [style.width.%]="getCategoryPlannedWidth(c)"
-                      [style.background-color]="c.color || '#3B82F6'"
-                    ></div>
-                  </div>
-
-                  <div class="mt-2 grid grid-cols-3 gap-3 text-xs">
-                    <div>
-                      <p class="text-gray-600 dark:text-gray-400">Pagado</p>
-                      <p class="font-semibold text-emerald-600">{{ c.spent | currencyCop }}</p>
-                    </div>
-                    <div>
-                      <p class="text-gray-600 dark:text-gray-400">Pendiente</p>
-                      <p class="font-semibold text-amber-600">{{ c.pending | currencyCop }}</p>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-gray-600 dark:text-gray-400">% presupuesto</p>
-                      <p class="font-semibold text-gray-700 dark:text-gray-200">{{ c.percentOfBudget }}%</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Filtro por mes + lista de gastos -->
-      <div class="f360-card">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+        <div class="grid grid-cols-3 gap-2 text-center">
           <div>
-            <h2 class="font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center gap-2">Gastos</h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              {{ filteredExpenses().length }} de {{ expenses().length }} gasto(s)
+            <p class="text-xs text-gray-500 dark:text-gray-400">Presupuesto</p>
+            <p class="text-sm font-bold text-gray-900 dark:text-gray-100">
+              {{ totalBudgetAmount() | currencyCop }}
             </p>
           </div>
-          <!-- Tabs filtro -->
-          <div class="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 self-start sm:self-auto">
-            <button
-              type="button"
-              (click)="setFilter('current')"
-              [ngClass]="selectedFilter() === 'current'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
-              class="px-4 py-1.5 text-sm font-medium transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            >
-              📅 Este mes
+          <div>
+            <p class="text-xs text-emerald-600 dark:text-emerald-400">Pagado</p>
+            <p class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+              {{ totalPaidAmount() | currencyCop }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-red-500 dark:text-red-400">Pendiente</p>
+            <p class="text-sm font-bold text-red-600 dark:text-red-400">
+              {{ totalPendingAmount() | currencyCop }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfica "Por categoría" reubicada al final del módulo -->
+
+      <!-- Lista única: todos los gastos, filtrables por estado de pago -->
+      <div class="f360-card">
+        <div class="flex flex-col gap-3 mb-4">
+          <div>
+            <h2 class="font-bold text-lg text-gray-900 dark:text-gray-100 flex items-center gap-2">Todos los gastos</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
+              {{ filteredExpenses().length }} de {{ expenses().length }} · orden por más recientes
+            </p>
+          </div>
+
+          <!-- Chips clickables por estado de pago -->
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" (click)="setStatusFilter('all')"
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-colors"
+              [ngClass]="statusFilter() === 'all'
+                ? 'bg-blue-900 text-white ring-1 ring-blue-900'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'">
+              Todos <span class="text-[10px] opacity-70 f360-num">{{ statusCounts().all }}</span>
             </button>
-            <button
-              type="button"
-              (click)="setFilter('all')"
-              [ngClass]="selectedFilter() === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'"
-              class="px-4 py-1.5 text-sm font-medium border-l border-gray-200 dark:border-gray-700 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            >
-              📊 Histórico
+
+            <button type="button" (click)="setStatusFilter('red')"
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-colors"
+              [ngClass]="statusFilter() === 'red'
+                ? 'bg-rose-600 text-white ring-1 ring-rose-600'
+                : 'bg-white dark:bg-gray-800 text-rose-700 dark:text-rose-300 ring-1 ring-rose-200 dark:ring-rose-800/50 hover:bg-rose-50 dark:hover:bg-rose-900/20'">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span> Sin pagar <span class="text-[10px] opacity-70 f360-num">{{ statusCounts().red }}</span>
             </button>
+
+            <button type="button" (click)="setStatusFilter('orange')"
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-colors"
+              [ngClass]="statusFilter() === 'orange'
+                ? 'bg-orange-600 text-white ring-1 ring-orange-600'
+                : 'bg-white dark:bg-gray-800 text-orange-700 dark:text-orange-300 ring-1 ring-orange-200 dark:ring-orange-800/50 hover:bg-orange-50 dark:hover:bg-orange-900/20'">
+              <span class="w-2 h-2 rounded-full bg-orange-500"></span> &lt;50% <span class="text-[10px] opacity-70 f360-num">{{ statusCounts().orange }}</span>
+            </button>
+
+            <button type="button" (click)="setStatusFilter('yellow')"
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-colors"
+              [ngClass]="statusFilter() === 'yellow'
+                ? 'bg-amber-500 text-white ring-1 ring-amber-500'
+                : 'bg-white dark:bg-gray-800 text-amber-700 dark:text-amber-300 ring-1 ring-amber-200 dark:ring-amber-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/20'">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span> ≥50% <span class="text-[10px] opacity-70 f360-num">{{ statusCounts().yellow }}</span>
+            </button>
+
+            <button type="button" (click)="setStatusFilter('green')"
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-colors"
+              [ngClass]="statusFilter() === 'green'
+                ? 'bg-emerald-600 text-white ring-1 ring-emerald-600'
+                : 'bg-white dark:bg-gray-800 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-200 dark:ring-emerald-800/50 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Pagado <span class="text-[10px] opacity-70 f360-num">{{ statusCounts().green }}</span>
+            </button>
+
+            @if (statusCounts().gray > 0) {
+              <button type="button" (click)="setStatusFilter('gray')"
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium transition-colors"
+                [ngClass]="statusFilter() === 'gray'
+                  ? 'bg-gray-500 text-white ring-1 ring-gray-500'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'">
+                <span class="w-2 h-2 rounded-full bg-gray-400"></span> Cancelados <span class="text-[10px] opacity-70 f360-num">{{ statusCounts().gray }}</span>
+              </button>
+            }
           </div>
         </div>
 
-        <!-- Stats filtradas -->
-        @if (filteredExpenses().length > 0) {
-          <div class="grid grid-cols-2 md:grid-cols-2 gap-3 mb-5 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-            <div class="text-center">
-              <p class="text-xs text-gray-600 dark:text-gray-400">Pagado {{ selectedFilter() === 'current' ? 'este mes' : '' }}</p>
-              <p class="font-bold text-emerald-600">{{ filteredSpent() | currencyCop }}</p>
-            </div>
-            <div class="text-center">
-              <p class="text-xs text-gray-600 dark:text-gray-400">Pendiente {{ selectedFilter() === 'current' ? 'este mes' : '' }}</p>
-              <p class="font-bold text-amber-600">{{ filteredPending() | currencyCop }}</p>
-            </div>
-          </div>
-        }
-
-        @if (!filteredExpenses().length) {
+        @if (!expenses().length) {
           <div class="text-center py-10 text-gray-600 dark:text-gray-400">
-            @if (selectedFilter() === 'current') {
-              <p>No hay gastos registrados este mes.</p>
-              <button type="button" class="f360-btn-secondary mt-4" (click)="setFilter('all')">Ver histórico</button>
-            } @else {
-              <p>Aún no tienes gastos en este presupuesto.</p>
-            }
+            <p>Aún no tienes gastos en este presupuesto.</p>
+          </div>
+        } @else if (!filteredExpenses().length) {
+          <div class="text-center py-10 text-gray-600 dark:text-gray-400">
+            <p>No hay gastos con este filtro.</p>
+            <button type="button" class="f360-btn-secondary mt-3" (click)="setStatusFilter('all')">Ver todos</button>
           </div>
         } @else {
+          <!-- Grid 2 columnas, agrupado por categoría. Cards compactas con expansión inline. -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-5">
+            @for (group of filteredExpensesByCategory(); track group.categoryId) {
+              <section class="space-y-2">
+                <header class="flex items-baseline justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
+                  <h3 class="text-[11px] uppercase tracking-[0.18em] text-terra-700 dark:text-terra-300 font-semibold">{{ group.categoryName }}</h3>
+                  <span class="text-[10.5px] text-gray-500 dark:text-gray-400 f360-num">{{ group.expenses.length }} ítem(s)</span>
+                </header>
 
-          <!-- Vista HISTORICO: agrupado por mes -->
-          @if (selectedFilter() === 'all') {
-            @for (group of expensesByMonth(); track group.month) {
-              <div class="mb-6">
-                <h3 class="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-3">
-                  {{ formatMonth(group.month) }}
-                </h3>
-                <ng-container
-                  *ngTemplateOutlet="expenseCards; context: { $implicit: group.expenses }"
-                ></ng-container>
-              </div>
+                <div class="space-y-2">
+                  @for (e of group.expenses; track e.id) {
+                    <div>
+                      <!-- CARD COMPACTA -->
+                      <article
+                        class="rounded-lg border border-gray-100 dark:border-gray-800 border-l-[5px] p-3 bg-white dark:bg-gray-900 hover:shadow-sm transition-all cursor-pointer"
+                        [ngClass]="{
+                          'border-l-rose-500': expenseColor(e) === 'red',
+                          'border-l-orange-500': expenseColor(e) === 'orange',
+                          'border-l-amber-400': expenseColor(e) === 'yellow',
+                          'border-l-emerald-500': expenseColor(e) === 'green',
+                          'border-l-gray-400 opacity-70': expenseColor(e) === 'gray',
+                          'shadow-sm ring-1 ring-blue-200 dark:ring-blue-800/50': expandedExpenseId() === e.id
+                        }"
+                        (click)="toggleExpandExpense(e.id)">
+
+                        <div class="flex items-start justify-between gap-2 min-w-0">
+                          <div class="min-w-0 flex-1">
+                            <p class="font-semibold text-[13.5px] text-gray-900 dark:text-gray-100 truncate">{{ e.provider_name }}</p>
+                            <div class="flex items-center gap-1.5 mt-0.5 text-[10.5px] text-gray-500 dark:text-gray-400">
+                              <span class="f360-num font-medium text-emerald-700 dark:text-emerald-400">{{ e.paid_amount | currencyCop }}</span>
+                              <span class="opacity-60">/</span>
+                              <span class="f360-num">{{ e.amount | currencyCop }}</span>
+                              @if (e.due_date) {
+                                <span class="opacity-50">·</span>
+                                <span class="f360-num">{{ e.due_date | date:'dd MMM' }}</span>
+                              }
+                            </div>
+                          </div>
+                          <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap shrink-0 f360-num"
+                            [ngClass]="{
+                              'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-200': expenseColor(e) === 'red',
+                              'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200': expenseColor(e) === 'orange',
+                              'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200': expenseColor(e) === 'yellow',
+                              'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200': expenseColor(e) === 'green',
+                              'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300': expenseColor(e) === 'gray'
+                            }">
+                            {{ expensePaidPercent(e) }}%
+                          </span>
+                        </div>
+
+                        <div class="mt-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1 overflow-hidden">
+                          <div class="h-1 transition-all duration-700"
+                            [ngClass]="{
+                              'bg-rose-500': expenseColor(e) === 'red',
+                              'bg-orange-500': expenseColor(e) === 'orange',
+                              'bg-amber-400': expenseColor(e) === 'yellow',
+                              'bg-emerald-500': expenseColor(e) === 'green',
+                              'bg-gray-400': expenseColor(e) === 'gray'
+                            }"
+                            [style.width.%]="expensePaidPercent(e)"></div>
+                        </div>
+                      </article>
+
+                      <!-- DETALLE INLINE: pagos + acciones, sin scroll -->
+                      @if (expandedExpenseId() === e.id) {
+                        <div class="mt-1.5 ml-2 pl-3 pr-2 py-3 border-l-2 border-blue-300 dark:border-blue-700/60 bg-blue-50/40 dark:bg-blue-900/10 rounded-r-lg"
+                          (click)="$event.stopPropagation()"
+                          style="animation: slideDownInline 0.22s ease-out;">
+
+                          @if (e.description) {
+                            <p class="text-[11.5px] text-gray-600 dark:text-gray-300 mb-2.5 italic">{{ e.description }}</p>
+                          }
+
+                          <!-- Resumen 3 columnas -->
+                          <div class="grid grid-cols-3 gap-2 mb-3 text-[11px]">
+                            <div>
+                              <p class="text-gray-500 dark:text-gray-400 uppercase tracking-wider text-[9.5px]">Total</p>
+                              <p class="f360-num font-semibold text-gray-900 dark:text-gray-100">{{ e.amount | currencyCop }}</p>
+                            </div>
+                            <div>
+                              <p class="text-gray-500 dark:text-gray-400 uppercase tracking-wider text-[9.5px]">Pagado</p>
+                              <p class="f360-num font-semibold text-emerald-700 dark:text-emerald-400">{{ e.paid_amount | currencyCop }}</p>
+                            </div>
+                            <div>
+                              <p class="text-gray-500 dark:text-gray-400 uppercase tracking-wider text-[9.5px]">Falta</p>
+                              <p class="f360-num font-semibold text-amber-700 dark:text-amber-400">{{ e.remaining | currencyCop }}</p>
+                            </div>
+                          </div>
+
+                          <!-- Pagos -->
+                          @if (e.payments && e.payments.length) {
+                            <p class="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold mb-1.5">
+                              Pagos · {{ e.payments.length }}
+                            </p>
+                            <div class="space-y-1 mb-3">
+                              @for (p of e.payments; track p.id) {
+                                <div class="flex items-center gap-2 px-2 py-1.5 rounded-md bg-white dark:bg-gray-900 ring-1 ring-gray-100 dark:ring-gray-800 text-[11px]">
+                                  <span class="w-1.5 h-1.5 rounded-full shrink-0" [ngClass]="getPaymentMethodDotClass(p.payment_method)"></span>
+                                  <span class="f360-num text-gray-600 dark:text-gray-400">{{ p.payment_date | date:'dd/MM/yy' }}</span>
+                                  <span class="f360-num font-semibold text-gray-900 dark:text-gray-100 flex-1">{{ p.amount | currencyCop }}</span>
+
+                                  @if (paymentReceiptUrl(e, p.id); as url) {
+                                    <a [href]="url" target="_blank" rel="noopener"
+                                      (click)="$event.stopPropagation()"
+                                      class="w-6 h-6 grid place-items-center rounded-md text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+                                      title="Ver comprobante adjunto">
+                                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                        <polyline points="14 2 14 8 20 8"/>
+                                      </svg>
+                                    </a>
+                                  } @else {
+                                    <label
+                                      (click)="$event.stopPropagation()"
+                                      class="w-6 h-6 grid place-items-center rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer"
+                                      title="Adjuntar comprobante (foto/PDF)">
+                                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                                      </svg>
+                                      <input type="file" accept="image/*,.pdf" class="hidden"
+                                        (change)="onPaymentReceiptUpload($event, e.id, p.id)" />
+                                    </label>
+                                  }
+
+                                  <button type="button"
+                                    (click)="$event.stopPropagation(); deletePayment(e, p.id)"
+                                    class="w-6 h-6 grid place-items-center rounded-md text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30"
+                                    title="Eliminar este pago">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                      <path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 16h10l1-16"/>
+                                    </svg>
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          } @else {
+                            <p class="text-[11px] text-gray-500 dark:text-gray-400 italic mb-3">Sin pagos registrados aún.</p>
+                          }
+
+                          <!-- Acciones rápidas -->
+                          <div class="flex flex-wrap gap-1.5">
+                            @if (e.status !== 'paid' && e.status !== 'cancelled') {
+                              <button type="button"
+                                (click)="$event.stopPropagation(); openPaymentFor(e)"
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                                Registrar pago
+                              </button>
+                            }
+                            <button type="button"
+                              (click)="$event.stopPropagation(); openEditExpense(e)"
+                              [disabled]="e.status === 'cancelled'"
+                              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                              Editar
+                            </button>
+                            <button type="button"
+                              (click)="$event.stopPropagation(); openDetails(e)"
+                              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                              title="Documentos: cotización, contrato, factura...">
+                              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                              Documentos
+                            </button>
+                            @if (e.status !== 'paid' && e.status !== 'cancelled') {
+                              <button type="button"
+                                (click)="$event.stopPropagation(); deleteExpense(e)"
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium text-rose-700 dark:text-rose-300 ring-1 ring-rose-200 dark:ring-rose-800/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 ml-auto">
+                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 16h10l1-16"/></svg>
+                                Eliminar gasto
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </section>
             }
-          } @else {
-            <ng-container
-              *ngTemplateOutlet="expenseCards; context: { $implicit: filteredExpenses() }"
-            ></ng-container>
-          }
-
+          </div>
         }
       </div>
+
+      <style>
+        @keyframes slideDownInline {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      </style>
 
       <!-- Template: cards de gastos (desktop grid + mobile stack) -->
       <ng-template #expenseCards let-expenseList>
         <div class="space-y-3">
           @for (e of expenseList; track e.id) {
-            <div class="rounded-xl border border-gray-100 dark:border-gray-800 p-4 bg-white dark:bg-gray-900 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer" (click)="$event.stopPropagation(); openDetails(e)">
+            <div class="rounded-xl border border-gray-100 dark:border-gray-800 border-l-[5px] p-4 bg-white dark:bg-gray-900 hover:shadow-md transition-all cursor-pointer"
+              [ngClass]="{
+                'border-l-rose-500': expenseColor(e) === 'red',
+                'border-l-orange-500': expenseColor(e) === 'orange',
+                'border-l-amber-400': expenseColor(e) === 'yellow',
+                'border-l-emerald-500': expenseColor(e) === 'green',
+                'border-l-gray-400 opacity-70': expenseColor(e) === 'gray'
+              }"
+              (click)="$event.stopPropagation(); openDetails(e)">
 
               <!-- Fila 1: Provider + Badge estado -->
               <div class="flex items-start justify-between gap-2 mb-3">
@@ -739,13 +887,30 @@
                 </div>
               </div>
 
-              <!-- Progress bar -->
-              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-3">
+              <!-- Progress bar coloreada por % pagado -->
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-3 relative">
                 <div
-                  class="bg-emerald-500 h-1.5 rounded-full transition-all"
-                  [style.width.%]="e.amount > 0 ? (e.paid_amount / e.amount * 100) : 0"
+                  class="h-1.5 rounded-full transition-all"
+                  [ngClass]="{
+                    'bg-rose-500': expenseColor(e) === 'red',
+                    'bg-orange-500': expenseColor(e) === 'orange',
+                    'bg-amber-400': expenseColor(e) === 'yellow',
+                    'bg-emerald-500': expenseColor(e) === 'green',
+                    'bg-gray-400': expenseColor(e) === 'gray'
+                  }"
+                  [style.width.%]="expensePaidPercent(e)"
                 ></div>
               </div>
+              <p class="text-[11px] -mt-2 mb-3 font-medium"
+                 [ngClass]="{
+                   'text-rose-600 dark:text-rose-400': expenseColor(e) === 'red',
+                   'text-orange-600 dark:text-orange-400': expenseColor(e) === 'orange',
+                   'text-amber-600 dark:text-amber-400': expenseColor(e) === 'yellow',
+                   'text-emerald-600 dark:text-emerald-400': expenseColor(e) === 'green',
+                   'text-gray-500 dark:text-gray-400': expenseColor(e) === 'gray'
+                 }">
+                {{ expensePaidPercent(e) }}% pagado
+              </p>
 
               <!-- Botones con iconos -->
               <div class="flex gap-2 flex-wrap">
@@ -907,7 +1072,8 @@
                   <th class="py-2 pr-4">Método</th>
                   <th class="py-2 pr-4">Monto</th>
                   <th class="py-2 pr-4">Referencia</th>
-                  <th class="py-2">Notas</th>
+                  <th class="py-2 pr-4">Notas</th>
+                  <th class="py-2 pr-2 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -917,7 +1083,26 @@
                     <td class="py-2 pr-4"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full" [ngClass]="getPaymentMethodDotClass(p.payment_method)"></span><span class="text-gray-900 dark:text-gray-100">{{ getPaymentMethodText(p.payment_method) }}</span></span></td>
                     <td class="py-2 pr-4 font-semibold font-mono text-gray-900 dark:text-gray-100">{{ p.amount | currencyCop }}</td>
                     <td class="py-2 pr-4 text-gray-700 dark:text-gray-300">{{ p.reference_number ?? '—' }}</td>
-                    <td class="py-2 text-gray-700 dark:text-gray-300">{{ p.notes ?? '—' }}</td>
+                    <td class="py-2 pr-4 text-gray-700 dark:text-gray-300 max-w-[180px] truncate" [attr.title]="p.notes">{{ p.notes ?? '—' }}</td>
+                    <td class="py-2 pr-2">
+                      <div class="flex items-center justify-end gap-1.5">
+                        @if (paymentReceiptUrl(selectedExpenseDetails()!, p.id); as url) {
+                          <a [href]="url" target="_blank" rel="noopener"
+                            class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 ring-1 ring-emerald-200 dark:ring-emerald-800/50"
+                            title="Ver comprobante">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            Comprobante
+                          </a>
+                        }
+                        <button type="button"
+                          (click)="deletePayment(selectedExpenseDetails()!, p.id)"
+                          class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 ring-1 ring-rose-200 dark:ring-rose-800/50"
+                          title="Eliminar pago">
+                          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 16h10l1-16"/></svg>
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -1000,6 +1185,114 @@
 
       </div>
     }
+<!-- ════════ DISTRIBUCIÓN POR CATEGORÍA (al fondo, mejorada) ════════ -->
+      @if (categoryBreakdown().length) {
+        <div class="f360-card mt-6">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="min-w-0">
+              <p class="text-[10.5px] uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400 font-medium">Distribución</p>
+              <h2 class="font-display text-[22px] sm:text-[26px] font-light tracking-tight text-gray-900 dark:text-gray-100 mt-0.5 leading-tight">
+                Pagos por <span class="italic">categoría</span>
+              </h2>
+              <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                {{ categoryBreakdown().length }} categoría(s) · pagado vs pendiente
+              </p>
+            </div>
+            <span class="w-10 h-10 rounded-xl bg-terra-100 dark:bg-terra-700/30 grid place-items-center text-terra-700 dark:text-terra-300 ring-1 ring-terra-200 dark:ring-terra-700/40 shrink-0">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 3v18h18"/>
+                <rect x="7" y="11" width="3" height="6"/>
+                <rect x="12" y="7" width="3" height="10"/>
+                <rect x="17" y="13" width="3" height="4"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="f360-rule-ed mb-4 opacity-60"></div>
+
+          <!-- Lista editorial: una barra horizontal por categoría -->
+          <div class="space-y-3.5">
+            @for (row of categoryBreakdown(); track row.id) {
+              <button type="button"
+                class="w-full text-left group"
+                [attr.aria-pressed]="selectedCategoryId() === row.id"
+                (click)="selectedCategoryId.set(selectedCategoryId() === row.id ? null : row.id)">
+                <div class="flex items-baseline justify-between gap-3 mb-1.5">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-terra-500 shrink-0"></span>
+                    <p class="text-[13.5px] font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-terra-700 dark:group-hover:text-terra-300 transition-colors">
+                      {{ row.name }}
+                    </p>
+                    <span class="text-[10.5px] text-gray-500 dark:text-gray-400 f360-num">{{ row.count }} ítem(s)</span>
+                  </div>
+                  <p class="text-[12.5px] f360-num font-semibold text-gray-900 dark:text-gray-100 shrink-0">
+                    {{ row.spent | currencyCop }}
+                    <span class="text-gray-400 dark:text-gray-500 font-normal"> / {{ row.planned | currencyCop }}</span>
+                  </p>
+                </div>
+
+                <!-- Barra apilada pagado/pendiente -->
+                <div class="relative w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div class="absolute inset-y-0 left-0 bg-emerald-500 transition-all duration-700"
+                    [style.width.%]="row.planned > 0 ? (row.spent / row.planned * 100) : 0"></div>
+                  <div class="absolute inset-y-0 bg-amber-300/70 transition-all duration-700"
+                    [style.left.%]="row.planned > 0 ? (row.spent / row.planned * 100) : 0"
+                    [style.width.%]="row.planned > 0 ? (row.pending / row.planned * 100) : 0"></div>
+                </div>
+
+                <div class="flex items-center justify-between mt-1 text-[10.5px]">
+                  <span class="text-emerald-700 dark:text-emerald-400 font-medium f360-num">{{ getCategoryPaidPercent(row) }}% pagado</span>
+                  <span class="text-gray-500 dark:text-gray-400 f360-num">{{ row.pending | currencyCop }} pendiente</span>
+                </div>
+              </button>
+            }
+          </div>
+
+          <!-- Leyenda de los segmentos -->
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800 text-[11px] text-gray-600 dark:text-gray-400">
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> Pagado</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-amber-300/70"></span> Pendiente</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-gray-100 dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700"></span> Sin asignar</span>
+          </div>
+
+          <!-- Detalle al hacer click -->
+          @if (selectedCategory()) {
+            <div class="mt-5 rounded-xl border border-gray-100 dark:border-gray-800 p-4 bg-gray-50 dark:bg-gray-900/50">
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <div class="min-w-0">
+                  <p class="text-[10.5px] uppercase tracking-[0.16em] text-gray-500 dark:text-gray-400 font-medium">Detalle</p>
+                  <p class="font-display italic text-[18px] text-gray-900 dark:text-gray-100 mt-0.5 truncate">{{ selectedCategory()!.name }}</p>
+                </div>
+                <button type="button"
+                  class="text-[11px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                  (click)="selectedCategoryId.set(null)">Cerrar</button>
+              </div>
+
+              <p class="text-[11px] font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider mb-2">
+                Pagos registrados
+              </p>
+              @if (selectedCategoryPayments().length === 0) {
+                <p class="text-sm text-gray-600 dark:text-gray-400">No hay pagos registrados en esta categoría.</p>
+              } @else {
+                <div class="space-y-2">
+                  @for (p of selectedCategoryPayments(); track p.id) {
+                    <div class="flex items-center justify-between gap-3 text-sm py-1.5 border-b border-gray-100 dark:border-gray-800 last:border-0">
+                      <div class="min-w-0">
+                        <p class="text-gray-800 dark:text-gray-100 truncate text-[13px] font-medium">
+                          {{ p.provider_name }}
+                        </p>
+                        <p class="text-[11px] text-gray-500 dark:text-gray-400 f360-num">{{ p.payment_date }}</p>
+                      </div>
+                      <p class="f360-num font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">{{ p.amount | currencyCop }}</p>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
 <!-- Exportar (Excel) -->
       <div class="mt-6 f360-card p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

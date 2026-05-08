@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git show *)"
+    ],
+    "additionalDirectories": [
+      "d:\\Desarrollo\\Gitlab Personal\\finanzas360"
+    ]
+  }
+}

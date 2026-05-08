@@ -20,6 +20,7 @@ import { BankLogoComponent } from '../../../shared/components/bank-logo/bank-log
 export const EXPENSE_CATEGORIES = [
   { value: 'Servicios públicos', label: 'Servicios públicos', icon: '💡' },
   { value: 'Arriendo', label: 'Arriendo', icon: '🏠' },
+  { value: 'Aporte al hogar', label: 'Aporte al hogar', icon: '🏡' },
   { value: 'Viajes', label: 'Viajes', icon: '✈️' },
   { value: 'Tecnología', label: 'Tecnología', icon: '💻' },
   { value: 'Deudas', label: 'Deudas', icon: '💳' },
@@ -188,6 +189,7 @@ export class ExpenseFormComponent implements OnInit {
     return acc.bank_slug ?? '';
   }
 }
+
 
 
 

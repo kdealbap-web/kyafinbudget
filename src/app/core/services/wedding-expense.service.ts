@@ -156,16 +156,29 @@ export class WeddingExpenseService {
 
       const normalized = ((expenses ?? []) as Array<Record<string, unknown>>).map((row) => {
         const amount = Number((row as Record<string, unknown>)['amount'] ?? (row as any).amount ?? 0);
-        const paid_amount = Number((row as Record<string, unknown>)['paid_amount'] ?? (row as any).paid_amount ?? 0);
-        const remainingRaw = (row as Record<string, unknown>)['remaining'] ?? (row as any).remaining;
-        const remaining = remainingRaw === null || remainingRaw === undefined
-          ? Math.max(0, amount - paid_amount)
-          : Number(remainingRaw);
-        const status = ((row as any).status ?? (paid_amount >= amount
-          ? WeddingExpenseStatus.Paid
-          : paid_amount > 0
-            ? WeddingExpenseStatus.Partial
-            : WeddingExpenseStatus.Pending)) as WeddingExpenseStatus;
+
+        const paymentsArr = Array.isArray((row as any)['payments'])
+          ? ((row as any)['payments'] as WeddingExpensePayment[])
+          : (row as any)['payments']
+            ? [((row as any)['payments'] as unknown as WeddingExpensePayment)]
+            : [];
+
+        // paid_amount = SUM(payments.amount): fuente de verdad,
+        // evita desincronización por triggers BD que reescriben el campo.
+        const paid_amount = paymentsArr.reduce(
+          (s, p) => s + Number((p as any)?.amount ?? 0),
+          0,
+        );
+        const remaining = Math.max(0, amount - paid_amount);
+
+        const cancelled = (row as any).status === WeddingExpenseStatus.Cancelled;
+        const status = (cancelled
+          ? WeddingExpenseStatus.Cancelled
+          : paid_amount >= amount && amount > 0
+            ? WeddingExpenseStatus.Paid
+            : paid_amount > 0
+              ? WeddingExpenseStatus.Partial
+              : WeddingExpenseStatus.Pending) as WeddingExpenseStatus;
 
         return {
           ...(row as unknown as WeddingExpense),
@@ -174,11 +187,7 @@ export class WeddingExpenseService {
           remaining,
           status,
           category: this.normalizeJoin((row as any)['category'] as WeddingExpense['category']),
-          payments: Array.isArray((row as any)['payments'])
-            ? ((row as any)['payments'] as WeddingExpense['payments'])
-            : (row as any)['payments']
-              ? [((row as any)['payments'] as unknown as WeddingExpensePayment)]
-              : [],
+          payments: paymentsArr,
           attachments: Array.isArray((row as any)['attachments'])
             ? ((row as any)['attachments'] as WeddingExpenseAttachment[])
             : (row as any)['attachments']
@@ -562,7 +571,8 @@ export class WeddingExpenseService {
   async addPayment(
     expenseId: string,
     payment: WeddingExpensePaymentCreateInput,
-    tx?: WeddingPaymentTransactionContext
+    tx?: WeddingPaymentTransactionContext,
+    receipt?: File | null,
   ): Promise<boolean> {
     this.isLoading.set(true);
     this.error.set(null);
@@ -611,6 +621,38 @@ export class WeddingExpenseService {
         .single();
       if (paymentError) throw paymentError;
       createdPaymentId = (createdPayment as { id: string }).id;
+
+      // 1.b) Subir comprobante si se adjuntó (ligado al pago vía storage_path)
+      if (receipt && createdPaymentId) {
+        try {
+          const safeName = receipt.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const storagePath = `wedding/${userId}/${expenseId}/payment-${createdPaymentId}/${Date.now()}_${safeName}`;
+
+          const { error: uploadError } = await this.supabase.client.storage
+            .from(this.attachmentsBucket)
+            .upload(storagePath, receipt, {
+              upsert: false,
+              contentType: receipt.type || undefined,
+            });
+          if (uploadError) throw uploadError;
+
+          const attachmentPayload = {
+            expense_id: expenseId,
+            file_name: receipt.name,
+            file_type: receipt.type || null,
+            file_size: receipt.size || null,
+            storage_path: storagePath,
+            attachment_type: WeddingExpenseAttachmentType.Receipt,
+            uploaded_by: userId,
+          };
+          await this.supabase.client
+            .from('wedding_expense_attachments')
+            .insert(attachmentPayload);
+        } catch (uploadErr) {
+          // Comprobante es opcional: si falla no abortamos el pago.
+          console.error('Error subiendo comprobante de pago:', uploadErr);
+        }
+      }
 
       // 2) Crear transacción para impactar cuentas/dashboard (opcional)
       const accountId = tx?.account_id ?? expense.account_id ?? null;
@@ -680,7 +722,143 @@ export class WeddingExpenseService {
       this.isLoading.set(false);
     }
   }
+
+  /**
+   * Adjunta un comprobante (foto/PDF) a un pago existente que aún no lo tiene.
+   * Sube al bucket `receipts` con storage_path que incluye `payment-<id>` para
+   * que `paymentReceiptUrl()` lo localice.
+   */
+  async addReceiptToPayment(
+    expenseId: string,
+    paymentId: string,
+    file: File,
+  ): Promise<boolean> {
+    this.isLoading.set(true);
+    this.error.set(null);
+    try {
+      const userId = this.getUserIdOrThrow();
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `wedding/${userId}/${expenseId}/payment-${paymentId}/${Date.now()}_${safeName}`;
+
+      const { error: uploadError } = await this.supabase.client.storage
+        .from(this.attachmentsBucket)
+        .upload(storagePath, file, {
+          upsert: false,
+          contentType: file.type || undefined,
+        });
+      if (uploadError) throw uploadError;
+
+      const payload = {
+        expense_id: expenseId,
+        file_name: file.name,
+        file_type: file.type || null,
+        file_size: file.size || null,
+        storage_path: storagePath,
+        attachment_type: WeddingExpenseAttachmentType.Receipt,
+        uploaded_by: userId,
+      };
+      const { error } = await this.supabase.client
+        .from('wedding_expense_attachments')
+        .insert(payload);
+      if (error) throw error;
+
+      const current = this.currentBudget();
+      if (current?.id) await this.loadBudgetWithExpenses(current.id);
+      return true;
+    } catch (err) {
+      console.error('Error adjuntando comprobante a pago:', err);
+      this.error.set('No se pudo adjuntar el comprobante.');
+      return false;
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  /**
+   * Elimina un pago concreto, su comprobante adjunto, y best-effort la
+   * transacción que se creó automáticamente al registrarlo. Después
+   * recarga el presupuesto para recalcular paid_amount/status.
+   */
+  async deletePayment(expenseId: string, paymentId: string): Promise<boolean> {
+    this.isLoading.set(true);
+    this.error.set(null);
+    try {
+      // 1) Datos del pago + expense (para localizar la tx asociada)
+      const { data: paymentRow } = await this.supabase.client
+        .from('wedding_expense_payments')
+        .select('amount, payment_date')
+        .eq('id', paymentId)
+        .single();
+
+      const { data: expenseRow } = await this.supabase.client
+        .from('wedding_expenses')
+        .select('provider_name')
+        .eq('id', expenseId)
+        .single();
+
+      // 2) Borrar comprobantes ligados al pago (path contiene "payment-<id>")
+      const { data: paymentAttachments } = await this.supabase.client
+        .from('wedding_expense_attachments')
+        .select('id, storage_path')
+        .eq('expense_id', expenseId)
+        .like('storage_path', `%payment-${paymentId}%`);
+
+      const attachList = (paymentAttachments ?? []) as Array<{ id: string; storage_path: string }>;
+      for (const a of attachList) {
+        try {
+          await this.supabase.client.storage
+            .from(this.attachmentsBucket)
+            .remove([a.storage_path]);
+        } catch (err) {
+          console.error('Error borrando archivo de comprobante:', err);
+        }
+      }
+      if (attachList.length) {
+        await this.supabase.client
+          .from('wedding_expense_attachments')
+          .delete()
+          .in('id', attachList.map((a) => a.id));
+      }
+
+      // 3) Best-effort: borrar transacción asociada
+      if (paymentRow && expenseRow) {
+        const provider = (expenseRow as { provider_name: string }).provider_name;
+        const concept = `💍 Boda: Pago a ${provider}`;
+        const amount = Number((paymentRow as { amount: number }).amount ?? 0);
+        const date = (paymentRow as { payment_date: string }).payment_date;
+        try {
+          await this.supabase.client
+            .from('transactions')
+            .delete()
+            .eq('concept', concept)
+            .eq('amount', amount)
+            .eq('date', date);
+        } catch (err) {
+          console.error('Error borrando transacción asociada:', err);
+        }
+      }
+
+      // 4) Borrar el pago
+      const { error: deleteError } = await this.supabase.client
+        .from('wedding_expense_payments')
+        .delete()
+        .eq('id', paymentId);
+      if (deleteError) throw deleteError;
+
+      // 5) Recargar para recalcular paid_amount/status
+      const current = this.currentBudget();
+      if (current?.id) await this.loadBudgetWithExpenses(current.id);
+      return true;
+    } catch (err) {
+      console.error('Error eliminando pago de boda:', err);
+      this.error.set('No se pudo eliminar el pago.');
+      return false;
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
 }
+
 
 
 

@@ -145,6 +145,14 @@
             </label>
 
             <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="execute(payment)"
+                [disabled]="!payment.is_active"
+                class="f360-btn-primary text-sm px-4 py-2 min-h-11 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                Ejecutar
+              </button>
               <a
                 [routerLink]="['/scheduled', payment.id, 'edit']"
                 class="f360-btn-secondary text-sm px-4 py-2 min-h-11"

@@ -2,12 +2,17 @@
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Chart, registerables, TooltipItem } from 'chart.js';
 
 import { CurrencyCopPipe } from '../../../shared/pipes/currency-cop.pipe';
 import { CurrencyCopInputDirective } from '../../../shared/directives/currency-cop-input.directive';
@@ -35,6 +40,11 @@ type WeddingCategoryBreakdownRow = {
   percentOfBudget: number;
 };
 
+if (typeof window !== 'undefined') {
+  Chart.register(...registerables);
+}
+
+
 @Component({
   selector: 'app-wedding-dashboard',
   standalone: true,
@@ -42,13 +52,18 @@ type WeddingCategoryBreakdownRow = {
   templateUrl: './wedding-dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WeddingDashboardComponent implements OnInit {
+export class WeddingDashboardComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly weddingService = inject(WeddingExpenseService);
   private readonly accountService = inject(AccountService);
   private readonly portfolioService = inject(PortfolioService);
+
+  @ViewChild('categoryChart') categoryChart?: ElementRef<HTMLCanvasElement>;
+  private categoryChartInstance?: Chart;
+
+  readonly selectedCategoryId = signal<string | null>(null);
 
   readonly WeddingBudgetStatus = WeddingBudgetStatus;
   readonly WeddingExpensePaymentMethod = WeddingExpensePaymentMethod;
@@ -102,6 +117,17 @@ export class WeddingDashboardComponent implements OnInit {
     const remaining = totalBudget - planned;
     return { totalBudget, planned, spent, pending, remaining };
   });
+  readonly totalBudgetAmount = computed(() => this.budgetTotals().totalBudget);
+  readonly totalPaidAmount = computed(() => this.budgetTotals().spent);
+  readonly totalPendingAmount = computed(() =>
+    Math.max(0, this.totalBudgetAmount() - this.totalPaidAmount()),
+  );
+
+  readonly paymentProgress = computed(() =>
+    this.totalBudgetAmount() > 0
+      ? Math.round((this.totalPaidAmount() / this.totalBudgetAmount()) * 100)
+      : 0,
+  );
 
   readonly categoryBreakdown = computed(() => {
     const totalBudget = Number(this.currentBudget()?.total_budget ?? 0);
@@ -155,47 +181,134 @@ export class WeddingDashboardComponent implements OnInit {
     rows.sort((a, b) => b.planned - a.planned);
     return rows;
   });
+  readonly selectedCategory = computed(() => {
+    const id = this.selectedCategoryId();
+    if (!id) return null;
+    return this.categoryBreakdown().find((c) => c.id === id) ?? null;
+  });
+
+  readonly selectedCategoryPayments = computed(() => {
+    const id = this.selectedCategoryId();
+    if (!id) return [];
+
+    const expenses = this.expenses().filter((e) => {
+      const catId = e.category?.id ?? e.category_id ?? 'unknown';
+      return catId === id;
+    });
+
+    const rows = expenses.flatMap((e) =>
+      (e.payments ?? []).map((p) => ({
+        id: p.id,
+        provider_name: e.provider_name,
+        payment_date: p.payment_date,
+        amount: Number(p.amount ?? 0),
+        payment_method: p.payment_method,
+        reference_number: p.reference_number ?? null,
+        notes: p.notes ?? null,
+      })),
+    );
+
+    rows.sort((a, b) => (b.payment_date ?? '').localeCompare(a.payment_date ?? ''));
+    return rows;
+  });
 
   readonly categoryBreakdownMaxPlanned = computed(() => {
     const rows = this.categoryBreakdown();
     if (!rows.length) return 1;
     return Math.max(1, ...rows.map((r) => Number(r.planned ?? 0)));
   });
-  readonly selectedFilter = signal<'current' | 'all'>('current');
+  constructor() {
+    effect(() => {
+      const budgetId = this.currentBudget()?.id ?? null;
+      const rows = this.categoryBreakdown();
+
+      if (!budgetId) {
+        this.selectedCategoryId.set(null);
+        this.destroyCategoryChart();
+        return;
+      }
+
+      const selected = this.selectedCategoryId();
+      if (selected && !rows.some((r) => r.id === selected)) {
+        this.selectedCategoryId.set(null);
+      }
+
+      setTimeout(() => this.renderCategoryChart(rows), 0);
+    });
+  }
+
+  // Lista única ordenada por más recientes — sin filtros mes/histórico.
+  readonly sortedExpenses = computed(() => {
+    const all = [...this.expenses()];
+    return all.sort((a, b) =>
+      (b.created_at ?? b.due_date ?? '').localeCompare(a.created_at ?? a.due_date ?? '')
+    );
+  });
+
+  // Filtro por estado de pago: 'all' | 'red' | 'orange' | 'yellow' | 'green' | 'gray'
+  readonly statusFilter = signal<'all' | 'red' | 'orange' | 'yellow' | 'green' | 'gray'>('all');
+
+  setStatusFilter(f: 'all' | 'red' | 'orange' | 'yellow' | 'green' | 'gray'): void {
+    this.statusFilter.set(f);
+  }
 
   readonly filteredExpenses = computed(() => {
-    const all = this.expenses();
-    if (this.selectedFilter() === 'all') return all;
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
-    return all.filter(e => {
-      const d = e.created_at ?? e.due_date ?? '';
-      return d.slice(0, 7) === currentMonth;
-    });
+    const f = this.statusFilter();
+    if (f === 'all') return this.sortedExpenses();
+    return this.sortedExpenses().filter((e) => this.expenseColor(e) === f);
   });
 
-  readonly filteredSpent = computed(() =>
-    this.filteredExpenses()
-      .filter(e => e.status !== WeddingExpenseStatus.Cancelled)
-      .reduce((s, e) => s + Number(e.paid_amount ?? 0), 0)
-  );
-
-  readonly filteredPending = computed(() =>
-    this.filteredExpenses()
-      .filter(e => e.status !== WeddingExpenseStatus.Cancelled)
-      .reduce((s, e) => s + Math.max(0, Number(e.amount ?? 0) - Number(e.paid_amount ?? 0)), 0)
-  );
-
-  readonly expensesByMonth = computed(() => {
-    const map = new Map<string, WeddingExpense[]>();
-    for (const e of this.filteredExpenses()) {
-      const key = (e.created_at ?? e.due_date ?? '').slice(0, 7);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(e);
+  readonly statusCounts = computed(() => {
+    const list = this.sortedExpenses();
+    const counts = { all: list.length, red: 0, orange: 0, yellow: 0, green: 0, gray: 0 };
+    for (const e of list) {
+      const c = this.expenseColor(e);
+      counts[c]++;
     }
-    return [...map.entries()]
-      .sort(([a], [b]) => b.localeCompare(a))
-      .map(([month, expenses]) => ({ month, expenses }));
+    return counts;
   });
+
+  /** Lista filtrada agrupada por categoría — para layout 2 columnas. */
+  readonly filteredExpensesByCategory = computed(() => {
+    const list = this.filteredExpenses();
+    const map = new Map<
+      string,
+      { categoryId: string; categoryName: string; expenses: WeddingExpense[] }
+    >();
+    for (const e of list) {
+      const id = e.category?.id ?? e.category_id ?? 'unknown';
+      const name = e.category?.name ?? 'Sin categoría';
+      if (!map.has(id)) map.set(id, { categoryId: id, categoryName: name, expenses: [] });
+      map.get(id)!.expenses.push(e);
+    }
+    return [...map.values()];
+  });
+
+  /** Gasto expandido inline (solo uno a la vez). */
+  readonly expandedExpenseId = signal<string | null>(null);
+
+  toggleExpandExpense(expenseId: string): void {
+    this.expandedExpenseId.update((id) => (id === expenseId ? null : expenseId));
+  }
+
+  /** Adjuntar comprobante a un pago existente (input file por fila). */
+  async onPaymentReceiptUpload(
+    event: Event,
+    expenseId: string,
+    paymentId: string,
+  ): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const ok = await this.weddingService.addReceiptToPayment(expenseId, paymentId, file);
+    if (ok) {
+      this.toast.success('Comprobante adjuntado');
+      this.refreshDetailsExpense(expenseId);
+    } else {
+      this.toast.error('No se pudo adjuntar el comprobante');
+    }
+    input.value = '';
+  }
 
 
   readonly showBudgetForm = signal(false);
@@ -252,12 +365,20 @@ export class WeddingDashboardComponent implements OnInit {
 
   readonly selectedAttachmentFile = signal<File | null>(null);
 
+  // Comprobante asociado al pago en curso (foto/PDF de transferencia, recibo, etc.)
+  readonly selectedReceiptFile = signal<File | null>(null);
+
   readonly attachmentForm = this.fb.nonNullable.group({
     attachment_type: this.fb.nonNullable.control<WeddingExpenseAttachmentType>(
       WeddingExpenseAttachmentType.Quote,
       [Validators.required]
     ),
   });
+
+  onReceiptFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedReceiptFile.set(input.files?.[0] ?? null);
+  }
 
 
   async ngOnInit(): Promise<void> {
@@ -369,6 +490,7 @@ export class WeddingDashboardComponent implements OnInit {
   closePaymentForm(): void {
     this.showPaymentForm.set(false);
     this.selectedExpenseForPayment.set(null);
+    this.selectedReceiptFile.set(null);
   }
 
   openDetails(expense: WeddingExpense): void {
@@ -516,6 +638,8 @@ export class WeddingDashboardComponent implements OnInit {
 
     const raw = this.paymentForm.getRawValue();
 
+    const receipt = this.selectedReceiptFile();
+
     const ok = await this.weddingService.addPayment(
       expense.id,
       {
@@ -530,7 +654,8 @@ export class WeddingDashboardComponent implements OnInit {
         portfolio_id: raw.portfolio_id ?? null,
         concept: `💍 Boda: Pago a ${expense.provider_name}`,
         category: 'Otros',
-      }
+      },
+      receipt,
     );
 
     if (!ok) {
@@ -538,9 +663,38 @@ export class WeddingDashboardComponent implements OnInit {
       return;
     }
 
-    this.toast.success('Pago registrado (crea transacción)');
+    this.toast.success(receipt ? 'Pago registrado con comprobante' : 'Pago registrado');
     this.closePaymentForm();
     this.refreshDetailsExpense(expense.id);
+  }
+
+  /** Eliminar un pago concreto (con confirm). */
+  async deletePayment(expense: WeddingExpense, paymentId: string): Promise<void> {
+    const confirmed = await this.confirmDialog.confirm({
+      title: 'Eliminar pago',
+      message:
+        '¿Eliminar este pago? Se borrará el registro, su comprobante y la transacción asociada (si aún existe). Los montos pagado/pendiente se recalcularán automáticamente.',
+      type: 'danger',
+      confirmLabel: 'Sí, eliminar',
+      cancelLabel: 'Cancelar',
+    });
+    if (!confirmed) return;
+
+    const ok = await this.weddingService.deletePayment(expense.id, paymentId);
+    if (!ok) {
+      this.toast.error('No se pudo eliminar el pago');
+      return;
+    }
+    this.toast.success('Pago eliminado');
+    this.refreshDetailsExpense(expense.id);
+  }
+
+  /** URL pública del comprobante adjunto a un pago, si existe. */
+  paymentReceiptUrl(expense: WeddingExpense, paymentId: string): string | null {
+    const att = (expense.attachments ?? []).find(
+      (a) => (a.storage_path ?? '').includes(`payment-${paymentId}`),
+    );
+    return att ? this.weddingService.getAttachmentUrl(att) : null;
   }
 
   async downloadReport(): Promise<void> {
@@ -744,6 +898,101 @@ export class WeddingDashboardComponent implements OnInit {
   getPaymentsCount(expense: WeddingExpense): number {
     return Array.isArray(expense.payments) ? expense.payments.length : 0;
   }
+  ngOnDestroy(): void {
+    this.destroyCategoryChart();
+  }
+
+  private destroyCategoryChart(): void {
+    this.categoryChartInstance?.destroy();
+    this.categoryChartInstance = undefined;
+  }
+
+  private renderCategoryChart(rows: WeddingCategoryBreakdownRow[]): void {
+    if (typeof window === 'undefined') return;
+
+    const canvas = this.categoryChart?.nativeElement;
+    if (!canvas) return;
+
+    if (!rows.length) {
+      this.destroyCategoryChart();
+      return;
+    }
+
+    const isDark = typeof document !== 'undefined'
+      && document.documentElement.classList.contains('dark');
+
+    const textColor = isDark ? '#E5E7EB' : '#374151';
+    const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+    const pendingColor = isDark ? '#374151' : '#E5E7EB';
+
+    const labels = rows.map((row) => row.name);
+
+    this.destroyCategoryChart();
+
+    this.categoryChartInstance = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Pagado',
+            data: rows.map((row) => Number(row.spent ?? 0)),
+            backgroundColor: '#059669',
+          },
+          {
+            label: 'Pendiente',
+            data: rows.map((row) => Number(row.pending ?? 0)),
+            backgroundColor: pendingColor,
+          },
+        ],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (_event, elements) => {
+          const el = elements?.[0];
+          if (!el) return;
+          const idx = (el as unknown as { index: number }).index;
+          const row = this.categoryBreakdown()[idx];
+          this.selectedCategoryId.set(row?.id ?? null);
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: textColor },
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx: TooltipItem<'bar'>) => {
+                const raw = typeof ctx.raw === 'number' ? ctx.raw : Number(ctx.raw ?? 0);
+                const label = ctx.dataset.label ?? '';
+                return `${label}: $ ${raw.toLocaleString('es-CO')}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            stacked: true,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              callback: (val) => {
+                const num = typeof val === 'number' ? val : Number(val ?? 0);
+                return `${(num / 1000000).toFixed(1)}M`;
+              },
+            },
+          },
+          y: {
+            stacked: true,
+            grid: { display: false },
+            ticks: { color: textColor },
+          },
+        },
+      },
+    });
+  }
 
   private refreshDetailsExpense(expenseId: string): void {
     const currentDetails = this.selectedExpenseDetails();
@@ -752,14 +1001,23 @@ export class WeddingDashboardComponent implements OnInit {
     if (refreshed) this.selectedExpenseDetails.set(refreshed);
   }
 
-  setFilter(f: 'current' | 'all'): void {
-    this.selectedFilter.set(f);
+  /** Color semántico por % pagado. */
+  expenseColor(e: WeddingExpense): 'red' | 'orange' | 'yellow' | 'green' | 'gray' {
+    if (e.status === WeddingExpenseStatus.Cancelled) return 'gray';
+    const amt = Number(e.amount ?? 0);
+    const paid = Number(e.paid_amount ?? 0);
+    if (amt <= 0 || paid <= 0) return 'red';
+    const pct = (paid / amt) * 100;
+    if (pct >= 100) return 'green';
+    if (pct >= 50) return 'yellow';
+    return 'orange';
   }
 
-  formatMonth(month: string): string {
-    const [year, m] = month.split('-');
-    const date = new Date(Number(year), Number(m) - 1, 1);
-    return date.toLocaleDateString('es-CO', { year: 'numeric', month: 'long' });
+  expensePaidPercent(e: WeddingExpense): number {
+    const amt = Number(e.amount ?? 0);
+    const paid = Number(e.paid_amount ?? 0);
+    if (amt <= 0) return 0;
+    return Math.min(100, Math.max(0, Math.round((paid / amt) * 100)));
   }
 
   getCategoryPlannedWidth(row: WeddingCategoryBreakdownRow): number {
@@ -768,11 +1026,26 @@ export class WeddingDashboardComponent implements OnInit {
     const planned = Number(row.planned ?? 0);
     return Math.min(100, Math.max(0, Math.round((planned / max) * 100)));
   }
+  getCategoryPaidPercent(row: WeddingCategoryBreakdownRow): number {
+    const planned = Number(row.planned ?? 0);
+    if (planned <= 0) return 0;
+    const spent = Number(row.spent ?? 0);
+    return Math.min(100, Math.max(0, Math.round((spent / planned) * 100)));
+  }
 
   private todayISO(): string {
     return new Date().toISOString().split('T')[0];
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 

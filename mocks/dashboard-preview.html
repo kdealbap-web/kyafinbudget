@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>finanzas360 — Dashboard preview</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Geist', 'ui-sans-serif', 'system-ui'],
+            mono: ['"Geist Mono"', 'ui-monospace', 'monospace'],
+            display: ['Fraunces', 'serif'],
+          },
+          colors: {
+            paper:   '#F7F4EC',
+            cream:   '#FBF7EE',
+            ink: {
+              900: '#0E1A33',
+              700: '#1F2D4D',
+              500: '#5B6580',
+              300: '#A2A8B8',
+              100: '#E5E2D6',
+              50:  '#EFEBDD',
+            },
+            blue: {
+              900: '#0B1F46',
+              700: '#143C7B',
+              500: '#1F5AB8',
+              300: '#7AA3E0',
+              100: '#DCE6F4',
+              50:  '#EEF3FA',
+            },
+            gold: {
+              700: '#9A7820',
+              600: '#B6912D',
+              500: '#D4AE5C',
+              400: '#E2C277',
+              200: '#F0DEAA',
+              100: '#F7ECC9',
+              50:  '#FAF3DB',
+            },
+            terra: {
+              700: '#8E3F26',
+              600: '#A2533A',
+              500: '#C16B4F',
+              300: '#E2A48C',
+              100: '#F4DDD2',
+              50:  '#FAEDE5',
+            },
+            money: {
+              good: '#0F5132',
+              goodTint: '#E5F0E8',
+              bad: '#8B2D2D',
+              badTint: '#F4E2DF',
+            },
+          },
+          boxShadow: {
+            hairline:   '0 0 0 1px #E5E2D6',
+            hairlineGold: '0 0 0 1px #F0DEAA',
+            soft:       '0 1px 2px rgba(11,31,70,0.04), 0 1px 3px rgba(11,31,70,0.04)',
+            lift:       '0 10px 28px -10px rgba(11,31,70,0.18), 0 2px 8px -2px rgba(11,31,70,0.06)',
+            hero:       '0 30px 60px -30px rgba(11,31,70,0.45), 0 8px 20px -10px rgba(11,31,70,0.30)',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root { color-scheme: light; }
+    html, body { background: #F7F4EC; }
+    body { font-family: 'Geist', sans-serif; -webkit-font-smoothing: antialiased; }
+    .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" on, "lnum" on; }
+
+    /* Premium hero — navy with gold filigree */
+    .hero-navy {
+      background:
+        radial-gradient(800px 360px at 110% -20%, rgba(212,174,92,0.18), transparent 60%),
+        radial-gradient(600px 280px at -10% 120%, rgba(31,90,184,0.35), transparent 60%),
+        linear-gradient(160deg, #0B1F46 0%, #143C7B 100%);
+    }
+    .hero-grain::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .25; mix-blend-mode: soft-light;
+      background-image: radial-gradient(#fff 0.5px, transparent 0.5px);
+      background-size: 3px 3px;
+    }
+    .hero-filigree {
+      background-image:
+        repeating-linear-gradient(135deg, transparent 0 11px, rgba(212,174,92,0.10) 11px 12px);
+    }
+
+    /* Editorial morse rule */
+    .ed-rule {
+      background-image: linear-gradient(90deg, #0B1F46 0 24px, transparent 24px 32px, #0B1F46 32px 56px, transparent 56px 64px, #D4AE5C 64px 88px, transparent 88px 96px, #0B1F46 96px 100%);
+      background-size: 100% 1px; background-repeat: no-repeat;
+    }
+
+    /* Sparkline */
+    .spark { stroke-dasharray: 600; stroke-dashoffset: 600; animation: draw 1.5s ease-out .25s forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+
+    /* Stagger reveal */
+    .reveal { opacity: 0; transform: translateY(8px); animation: rise .55s cubic-bezier(.2,.7,.2,1) forwards; }
+    .d1{animation-delay:.04s}.d2{animation-delay:.10s}.d3{animation-delay:.16s}
+    .d4{animation-delay:.22s}.d5{animation-delay:.28s}.d6{animation-delay:.34s}.d7{animation-delay:.42s}
+    @keyframes rise { to { opacity: 1; transform: none; } }
+
+    .pill-active { background: #0B1F46; color: #FBF7EE; }
+
+    .bar { transition: transform .25s ease, opacity .25s ease; transform-origin: bottom; }
+    .bar:hover { opacity: .85; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #E5E2D6; border-radius: 999px; }
+
+    /* Mobile bottom nav safe-area */
+    .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+    @media (max-width: 767.98px) { main { padding-bottom: 96px; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .spark { animation: none !important; opacity: 1 !important; transform: none !important; stroke-dashoffset: 0 !important; }
+    }
+  </style>
+</head>
+
+<body class="text-ink-900">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-40 bg-paper/85 backdrop-blur-md border-b border-ink-100">
+    <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <a class="flex items-center gap-2.5" href="#">
+          <span class="relative w-8 h-8 rounded-[10px] bg-blue-900 text-cream grid place-items-center">
+            <span class="absolute inset-0 rounded-[10px] ring-1 ring-gold-500/40"></span>
+            <span class="font-display text-[15px] font-semibold leading-none">f<span class="text-gold-400">3</span></span>
+          </span>
+          <span class="font-display text-[19px] tracking-tight">finanzas<span class="text-gold-600">360</span></span>
+        </a>
+        <nav class="hidden md:flex items-center gap-1 text-[13.5px] text-ink-700">
+          <a class="px-3 py-1.5 rounded-md bg-blue-50 text-blue-900 font-medium" href="#">Resumen</a>
+          <a class="px-3 py-1.5 rounded-md hover:bg-blue-50 transition" href="#">Cuentas</a>
+          <a class="px-3 py-1.5 rounded-md hover:bg-blue-50 transition" href="#">Movimientos</a>
+          <a class="px-3 py-1.5 rounded-md hover:bg-blue-50 transition" href="#">Programados</a>
+          <a class="px-3 py-1.5 rounded-md hover:bg-blue-50 transition" href="#">Deudas</a>
+          <a class="px-3 py-1.5 rounded-md hover:bg-terra-50 text-terra-700 transition flex items-center gap-1.5" href="wedding-preview.html">
+            <span class="w-1.5 h-1.5 rounded-full bg-terra-500"></span>Boda
+          </a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button aria-label="Buscar" class="w-10 h-10 rounded-md grid place-items-center hover:bg-blue-50 transition cursor-pointer">
+          <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <button aria-label="Notificaciones" class="relative w-10 h-10 rounded-md grid place-items-center hover:bg-blue-50 transition cursor-pointer">
+          <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 8a6 6 0 1 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+          <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-gold-600"></span>
+        </button>
+        <div class="hidden sm:block w-px h-5 bg-ink-100 mx-1"></div>
+        <div class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-blue-50 transition cursor-pointer">
+          <span class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-700 to-blue-900 text-cream text-[11px] font-semibold grid place-items-center ring-1 ring-gold-500/40">KD</span>
+          <span class="hidden sm:block text-[13px] font-medium pr-1">Kevin</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-10">
+
+    <!-- Editorial hero -->
+    <section class="reveal d1 mb-6 sm:mb-10">
+      <div class="flex items-end justify-between gap-6 flex-wrap">
+        <div>
+          <p class="text-[11px] sm:text-[12px] tracking-[0.18em] uppercase text-ink-500 font-medium">
+            Resumen · <span class="num">25 abr 2026</span>
+          </p>
+          <h1 class="font-display text-[36px] sm:text-[58px] leading-[0.95] tracking-tight mt-2">
+            Buenos días, <span class="italic font-medium">Kevin.</span>
+          </h1>
+          <p class="text-[14px] sm:text-[15px] text-ink-500 mt-3 max-w-xl">
+            Vas <span class="text-money-good font-medium">9.4%</span> mejor que el mes pasado en este día. Te quedan <span class="num text-ink-900 font-medium">5 días</span> de abril.
+          </p>
+        </div>
+        <div class="hidden sm:flex items-center gap-2">
+          <div class="flex p-1 rounded-full bg-white shadow-hairline text-[12.5px] font-medium">
+            <button class="pill-active px-3 py-1.5 rounded-full transition cursor-pointer">Mes</button>
+            <button class="px-3 py-1.5 rounded-full text-ink-500 hover:text-ink-900 transition cursor-pointer">Trimestre</button>
+            <button class="px-3 py-1.5 rounded-full text-ink-500 hover:text-ink-900 transition cursor-pointer">Año</button>
+          </div>
+          <button class="px-4 py-2.5 rounded-full bg-blue-900 text-cream hover:bg-blue-700 transition text-[13px] font-medium flex items-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+            Nueva transacción
+          </button>
+        </div>
+      </div>
+      <!-- Mobile period selector -->
+      <div class="sm:hidden mt-4 flex p-1 rounded-full bg-white shadow-hairline text-[12.5px] font-medium w-full">
+        <button class="pill-active flex-1 px-3 py-1.5 rounded-full transition cursor-pointer">Mes</button>
+        <button class="flex-1 px-3 py-1.5 rounded-full text-ink-500 transition cursor-pointer">Trimestre</button>
+        <button class="flex-1 px-3 py-1.5 rounded-full text-ink-500 transition cursor-pointer">Año</button>
+      </div>
+      <div class="ed-rule h-px mt-6 sm:mt-8"></div>
+    </section>
+
+    <!-- Hero balance + KPIs -->
+    <section class="reveal d2 grid lg:grid-cols-12 gap-4 sm:gap-6 mb-6 sm:mb-10">
+      <div class="lg:col-span-7 relative overflow-hidden rounded-[24px] hero-navy hero-filigree text-cream p-6 sm:p-10 shadow-hero">
+        <div class="hero-grain"></div>
+        <!-- decorative gold corners -->
+        <span class="absolute top-4 left-4 w-10 h-10 border-t border-l border-gold-500/40 rounded-tl-[16px]"></span>
+        <span class="absolute bottom-4 right-4 w-10 h-10 border-b border-r border-gold-500/40 rounded-br-[16px]"></span>
+
+        <div class="relative flex items-start justify-between gap-6">
+          <div>
+            <p class="text-[11px] tracking-[0.22em] uppercase text-gold-200 font-medium">Patrimonio neto</p>
+            <div class="mt-3 flex items-baseline gap-3">
+              <span class="text-gold-300 text-2xl font-mono">$</span>
+              <span class="font-mono num text-[52px] sm:text-[78px] leading-none tracking-tight">28,640<span class="text-gold-300/70">.50</span></span>
+            </div>
+            <div class="mt-5 flex items-center gap-3 text-[13px]">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-200 ring-1 ring-emerald-400/20">
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 15 6-6 6 6"/></svg>
+                <span class="num">+$2,461.30</span>
+              </span>
+              <span class="text-cream/60">en abril</span>
+            </div>
+          </div>
+          <div class="hidden sm:flex flex-col items-end gap-2">
+            <span class="text-[11px] tracking-[0.18em] uppercase text-cream/55">5 cuentas</span>
+            <div class="flex -space-x-1.5">
+              <span class="w-7 h-7 rounded-full bg-cream/15 ring-2 ring-blue-900 grid place-items-center text-[10px] font-semibold">BC</span>
+              <span class="w-7 h-7 rounded-full bg-cream/15 ring-2 ring-blue-900 grid place-items-center text-[10px] font-semibold">DV</span>
+              <span class="w-7 h-7 rounded-full bg-cream/15 ring-2 ring-blue-900 grid place-items-center text-[10px] font-semibold">NU</span>
+              <span class="w-7 h-7 rounded-full bg-gold-500/30 ring-2 ring-blue-900 grid place-items-center text-[10px] font-semibold text-gold-100">+2</span>
+            </div>
+          </div>
+        </div>
+
+        <svg class="relative mt-7 w-full h-20 sm:h-24" viewBox="0 0 600 96" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="sparkFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#D4AE5C" stop-opacity="0.30"/>
+              <stop offset="100%" stop-color="#D4AE5C" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,72 C40,60 80,68 120,52 C160,36 200,58 240,46 C280,32 320,40 360,28 C400,16 440,30 480,22 C520,14 560,28 600,18 L600,96 L0,96 Z" fill="url(#sparkFill)"/>
+          <path class="spark" d="M0,72 C40,60 80,68 120,52 C160,36 200,58 240,46 C280,32 320,40 360,28 C400,16 440,30 480,22 C520,14 560,28 600,18" fill="none" stroke="#E2C277" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <div class="relative mt-2 flex justify-between text-[11px] text-cream/55 font-mono num">
+          <span>1 abr</span><span>8 abr</span><span>15 abr</span><span>22 abr</span><span>hoy</span>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5 grid grid-cols-2 gap-3 sm:gap-4">
+        <article class="reveal d3 bg-white rounded-2xl shadow-hairline p-4 sm:p-5 hover:shadow-soft transition relative overflow-hidden">
+          <span class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-700 to-blue-500"></span>
+          <p class="text-[11px] tracking-[0.18em] uppercase text-ink-500 font-medium">Ingresos</p>
+          <p class="font-mono num text-[22px] sm:text-[26px] mt-2 tracking-tight text-blue-900">$8,420<span class="text-ink-300">.00</span></p>
+          <div class="flex items-center gap-1.5 mt-2 text-[12px] text-money-good">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 15 6-6 6 6"/></svg>
+            <span class="num">+12.1%</span>
+          </div>
+        </article>
+        <article class="reveal d3 bg-white rounded-2xl shadow-hairline p-4 sm:p-5 hover:shadow-soft transition relative overflow-hidden">
+          <span class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-terra-500 to-gold-500"></span>
+          <p class="text-[11px] tracking-[0.18em] uppercase text-ink-500 font-medium">Gastos</p>
+          <p class="font-mono num text-[22px] sm:text-[26px] mt-2 tracking-tight text-blue-900">$5,958<span class="text-ink-300">.70</span></p>
+          <div class="flex items-center gap-1.5 mt-2 text-[12px] text-money-bad">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+            <span class="num">-3.6%</span>
+          </div>
+        </article>
+        <article class="reveal d4 col-span-2 bg-white rounded-2xl shadow-hairline p-4 sm:p-5 hover:shadow-soft transition relative">
+          <div class="flex items-center justify-between">
+            <p class="text-[11px] tracking-[0.18em] uppercase text-ink-500 font-medium">Tasa de ahorro</p>
+            <span class="text-[11px] font-mono num px-2 py-0.5 rounded-full bg-gold-50 text-gold-700 ring-1 ring-gold-200">meta 30%</span>
+          </div>
+          <div class="mt-3 flex items-end justify-between gap-4">
+            <p class="font-mono num text-[22px] sm:text-[26px] tracking-tight text-blue-900">29.2<span class="text-ink-300">%</span></p>
+            <div class="flex-1 h-2.5 rounded-full bg-ink-50 overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-blue-700 via-blue-500 to-gold-500 rounded-full" style="width:97.3%"></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Wedding emblem (compact teaser, links to dedicated page) -->
+    <section class="reveal d4 mb-6 sm:mb-10">
+      <a href="wedding-preview.html" class="block group relative overflow-hidden rounded-[20px] bg-gradient-to-br from-terra-100 via-cream to-gold-50 ring-1 ring-terra-100 p-5 sm:p-6 transition hover:shadow-lift">
+        <span class="absolute -right-10 -top-10 w-44 h-44 rounded-full border border-terra-300/40"></span>
+        <span class="absolute -right-2 top-6 w-28 h-28 rounded-full border border-gold-400/40"></span>
+        <div class="relative flex items-center gap-5 sm:gap-6">
+          <!-- Monogram -->
+          <div class="shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-terra-500 text-cream grid place-items-center font-display italic text-[24px] sm:text-[30px] leading-none ring-4 ring-terra-100 tracking-tight">
+            K<span class="text-gold-200 mx-0.5 text-[18px] sm:text-[22px]">&amp;</span>A
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] sm:text-[11px] tracking-[0.28em] uppercase text-terra-700 font-medium">Tu boda · 12 sep 2026</p>
+            <h3 class="font-display text-[22px] sm:text-[28px] leading-tight tracking-tight mt-1 text-blue-900">
+              Faltan <span class="font-mono num text-terra-700">140 días</span><span class="hidden sm:inline">.</span>
+            </h3>
+            <p class="text-[12.5px] sm:text-[13.5px] text-ink-500 mt-1">Vas al <span class="text-terra-700 font-medium">68%</span> del presupuesto · 3 tareas pendientes esta semana.</p>
+          </div>
+          <div class="hidden sm:flex shrink-0 items-center gap-2 text-[13px] font-medium text-terra-700 group-hover:gap-3 transition-all">
+            Abrir tablero
+            <span class="w-9 h-9 rounded-full bg-terra-500 text-cream grid place-items-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+        </div>
+      </a>
+    </section>
+
+    <!-- Cash flow + Cuentas -->
+    <section class="grid lg:grid-cols-12 gap-4 sm:gap-6 mb-6 sm:mb-10">
+      <article class="reveal d4 lg:col-span-8 bg-white rounded-2xl shadow-hairline p-5 sm:p-7">
+        <header class="flex items-end justify-between gap-4 mb-5">
+          <div>
+            <h2 class="text-[15px] font-semibold tracking-tight text-blue-900">Flujo de caja</h2>
+            <p class="text-[12.5px] text-ink-500 mt-0.5">Últimos 6 meses · ingresos vs. gastos</p>
+          </div>
+          <div class="flex items-center gap-3 sm:gap-4 text-[12px] text-ink-500">
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-700"></span>Ingresos</span>
+            <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-gold-500"></span>Gastos</span>
+          </div>
+        </header>
+
+        <div class="grid grid-cols-6 gap-3 sm:gap-6 h-48 sm:h-56 items-end">
+          <div class="flex flex-col items-center gap-2">
+            <div class="flex items-end gap-1 w-full justify-center h-full">
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-blue-700" style="height:54%"></div>
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-gold-500" style="height:42%"></div>
+            </div>
+            <span class="text-[11px] text-ink-500 font-mono">Nov</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <div class="flex items-end gap-1 w-full justify-center h-full">
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-blue-700" style="height:62%"></div>
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-gold-500" style="height:50%"></div>
+            </div>
+            <span class="text-[11px] text-ink-500 font-mono">Dic</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <div class="flex items-end gap-1 w-full justify-center h-full">
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-blue-700" style="height:48%"></div>
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-gold-500" style="height:58%"></div>
+            </div>
+            <span class="text-[11px] text-ink-500 font-mono">Ene</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <div class="flex items-end gap-1 w-full justify-center h-full">
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-blue-700" style="height:70%"></div>
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-gold-500" style="height:48%"></div>
+            </div>
+            <span class="text-[11px] text-ink-500 font-mono">Feb</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <div class="flex items-end gap-1 w-full justify-center h-full">
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-blue-700" style="height:78%"></div>
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-gold-500" style="height:55%"></div>
+            </div>
+            <span class="text-[11px] text-ink-500 font-mono">Mar</span>
+          </div>
+          <div class="flex flex-col items-center gap-2 relative">
+            <span class="absolute -top-2 left-1/2 -translate-x-1/2 text-[10px] tracking-widest text-blue-900 font-medium">HOY</span>
+            <div class="flex items-end gap-1 w-full justify-center h-full">
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-blue-900 ring-2 ring-gold-400/40" style="height:84%"></div>
+              <div class="bar w-3 sm:w-3.5 rounded-t bg-gold-500" style="height:60%"></div>
+            </div>
+            <span class="text-[11px] text-blue-900 font-mono font-medium">Abr</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="reveal d5 lg:col-span-4 bg-white rounded-2xl shadow-hairline overflow-hidden">
+        <header class="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-[15px] font-semibold tracking-tight text-blue-900">Cuentas</h2>
+            <p class="text-[12.5px] text-ink-500 mt-0.5">5 activas</p>
+          </div>
+          <button class="text-[12px] font-medium text-blue-700 hover:underline cursor-pointer">Ver todas</button>
+        </header>
+        <ul class="divide-y divide-ink-100">
+          <li class="px-5 sm:px-6 py-3.5 flex items-center justify-between hover:bg-blue-50/50 transition">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-lg bg-amber-100 grid place-items-center text-[11px] font-semibold text-amber-900">BC</span>
+              <div>
+                <p class="text-[13.5px] font-medium">Bancolombia</p>
+                <p class="text-[11.5px] text-ink-500">Ahorros · *4821</p>
+              </div>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-blue-900">$12,480<span class="text-ink-300">.00</span></p>
+          </li>
+          <li class="px-5 sm:px-6 py-3.5 flex items-center justify-between hover:bg-blue-50/50 transition">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-lg bg-violet-100 grid place-items-center text-[11px] font-semibold text-violet-900">DV</span>
+              <div>
+                <p class="text-[13.5px] font-medium">Daviplata</p>
+                <p class="text-[11.5px] text-ink-500">Billetera</p>
+              </div>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-blue-900">$2,140<span class="text-ink-300">.50</span></p>
+          </li>
+          <li class="px-5 sm:px-6 py-3.5 flex items-center justify-between hover:bg-blue-50/50 transition">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-lg bg-emerald-100 grid place-items-center text-[11px] font-semibold text-emerald-900">NU</span>
+              <div>
+                <p class="text-[13.5px] font-medium">Nu</p>
+                <p class="text-[11.5px] text-ink-500">Crédito · *2210</p>
+              </div>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-money-bad">-$840<span class="text-ink-300">.00</span></p>
+          </li>
+          <li class="px-5 sm:px-6 py-3.5 flex items-center justify-between hover:bg-blue-50/50 transition">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-lg bg-sky-100 grid place-items-center text-[11px] font-semibold text-sky-900">RP</span>
+              <div>
+                <p class="text-[13.5px] font-medium">Rappipay</p>
+                <p class="text-[11.5px] text-ink-500">Billetera</p>
+              </div>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-blue-900">$880<span class="text-ink-300">.00</span></p>
+          </li>
+          <li class="px-5 sm:px-6 py-3.5 flex items-center justify-between hover:bg-blue-50/50 transition">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-lg bg-rose-100 grid place-items-center text-[11px] font-semibold text-rose-900">EF</span>
+              <div>
+                <p class="text-[13.5px] font-medium">Efectivo</p>
+                <p class="text-[11.5px] text-ink-500">Caja</p>
+              </div>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-blue-900">$120<span class="text-ink-300">.00</span></p>
+          </li>
+        </ul>
+      </article>
+    </section>
+
+    <!-- Próximos pagos + Movimientos -->
+    <section class="grid lg:grid-cols-12 gap-4 sm:gap-6 mb-10">
+      <article class="reveal d6 lg:col-span-5 bg-white rounded-2xl shadow-hairline p-5 sm:p-7">
+        <header class="flex items-end justify-between mb-5">
+          <div>
+            <h2 class="text-[15px] font-semibold tracking-tight text-blue-900">Próximos pagos</h2>
+            <p class="text-[12.5px] text-ink-500 mt-0.5">7 días siguientes</p>
+          </div>
+          <span class="text-[11px] tracking-[0.18em] uppercase text-gold-700 font-medium px-2 py-1 rounded-md bg-gold-50 ring-1 ring-gold-200">3 pendientes</span>
+        </header>
+        <ul class="space-y-2">
+          <li class="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <div class="w-12 h-12 rounded-xl bg-gold-50 ring-1 ring-gold-200 grid place-items-center">
+              <span class="font-mono num text-[10.5px] text-gold-700 font-semibold leading-none text-center">26<br>ABR</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[14px] font-medium truncate">Arriendo apartamento</p>
+              <p class="text-[12px] text-ink-500">Recurrente mensual · Bancolombia</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-blue-900">$1,850</p>
+          </li>
+          <li class="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 grid place-items-center">
+              <span class="font-mono num text-[10.5px] text-blue-700 font-semibold leading-none text-center">28<br>ABR</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[14px] font-medium truncate">Tarjeta Nu</p>
+              <p class="text-[12px] text-ink-500">Pago mínimo · vence en 3 días</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-blue-900">$420</p>
+          </li>
+          <li class="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 grid place-items-center">
+              <span class="font-mono num text-[10.5px] text-blue-700 font-semibold leading-none text-center">30<br>ABR</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[14px] font-medium truncate">Netflix · Spotify · iCloud</p>
+              <p class="text-[12px] text-ink-500">3 suscripciones</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-blue-900">$58.90</p>
+          </li>
+          <li class="flex items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <div class="w-12 h-12 rounded-xl bg-money-goodTint grid place-items-center">
+              <span class="font-mono num text-[10.5px] text-money-good font-semibold leading-none text-center">02<br>MAY</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[14px] font-medium truncate">Salario · Quincena</p>
+              <p class="text-[12px] text-ink-500">Ingreso recurrente</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-money-good">+$4,210</p>
+          </li>
+        </ul>
+      </article>
+
+      <article class="reveal d7 lg:col-span-7 bg-white rounded-2xl shadow-hairline p-5 sm:p-7">
+        <header class="flex items-end justify-between mb-5">
+          <div>
+            <h2 class="text-[15px] font-semibold tracking-tight text-blue-900">Movimientos recientes</h2>
+            <p class="text-[12.5px] text-ink-500 mt-0.5">Hoy y ayer</p>
+          </div>
+          <button class="text-[12px] font-medium text-blue-700 hover:underline cursor-pointer">Ver todos →</button>
+        </header>
+        <ul class="space-y-1">
+          <li class="grid grid-cols-[auto_1fr_auto] items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <span class="w-9 h-9 rounded-lg bg-money-badTint grid place-items-center text-money-bad">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7h18M6 7v13a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="text-[14px] font-medium truncate">Almacenes Éxito</p>
+              <p class="text-[12px] text-ink-500">Hoy 14:22 · Mercado · Bancolombia</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-money-bad">-$184.50</p>
+          </li>
+          <li class="grid grid-cols-[auto_1fr_auto] items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <span class="w-9 h-9 rounded-lg bg-money-goodTint grid place-items-center text-money-good">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="text-[14px] font-medium truncate">Transferencia recibida</p>
+              <p class="text-[12px] text-ink-500">Hoy 09:01 · Cliente freelance · Daviplata</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-money-good">+$1,400.00</p>
+          </li>
+          <li class="grid grid-cols-[auto_1fr_auto] items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <span class="w-9 h-9 rounded-lg bg-money-badTint grid place-items-center text-money-bad">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12h18M3 6h18M3 18h12"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="text-[14px] font-medium truncate">Spotify</p>
+              <p class="text-[12px] text-ink-500">Ayer · Suscripción · Nu</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-money-bad">-$16.90</p>
+          </li>
+          <li class="grid grid-cols-[auto_1fr_auto] items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <span class="w-9 h-9 rounded-lg bg-money-badTint grid place-items-center text-money-bad">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9 12h6M12 9v6"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="text-[14px] font-medium truncate">Uber · 3 viajes</p>
+              <p class="text-[12px] text-ink-500">Ayer · Transporte · Rappipay</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-money-bad">-$32.40</p>
+          </li>
+          <li class="grid grid-cols-[auto_1fr_auto] items-center gap-4 p-3 -mx-3 rounded-xl hover:bg-paper transition">
+            <span class="w-9 h-9 rounded-lg bg-blue-50 grid place-items-center text-blue-700">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 12h18M12 3v18"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="text-[14px] font-medium truncate">Transferencia interna</p>
+              <p class="text-[12px] text-ink-500">Ayer · Bancolombia → Daviplata</p>
+            </div>
+            <p class="font-mono num text-[14px] font-medium text-ink-500">$500.00</p>
+          </li>
+        </ul>
+      </article>
+    </section>
+
+    <p class="hidden md:block text-center text-[11px] tracking-[0.2em] uppercase text-ink-300 pb-10">
+      finanzas360 · preview de diseño · no es la app real
+    </p>
+  </main>
+
+  <!-- Mobile bottom tab bar -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-paper/95 backdrop-blur-md border-t border-ink-100 pb-safe">
+    <div class="grid grid-cols-5 items-end h-16 px-2 max-w-[480px] mx-auto relative">
+      <a href="#" class="flex flex-col items-center justify-center gap-0.5 text-blue-900">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+        <span class="text-[10px] font-medium">Inicio</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center gap-0.5 text-ink-500">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>
+        <span class="text-[10px]">Cuentas</span>
+      </a>
+      <div class="flex justify-center -mt-6">
+        <button aria-label="Nueva transacción" class="w-14 h-14 rounded-full bg-blue-900 text-cream grid place-items-center shadow-lift ring-4 ring-paper hover:bg-blue-700 transition cursor-pointer">
+          <span class="absolute -inset-px rounded-full ring-1 ring-gold-500/30"></span>
+          <svg class="w-6 h-6 relative" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+      <a href="#" class="flex flex-col items-center justify-center gap-0.5 text-ink-500">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M9 3v4M15 3v4"/></svg>
+        <span class="text-[10px]">Pagos</span>
+      </a>
+      <a href="wedding-preview.html" class="flex flex-col items-center justify-center gap-0.5 text-terra-700">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10"/></svg>
+        <span class="text-[10px] font-medium">Boda</span>
+      </a>
+    </div>
+  </nav>
+
+</body>
+</html>

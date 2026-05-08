@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Chart, registerables, TooltipItem, Scale } from 'chart.js';
 import { SupabaseService } from '../../core/services/supabase.service';
+import { ProgressBarService } from '../../shared/services/progress-bar.service';
 import { CurrencyCopPipe } from '../../shared/pipes/currency-cop.pipe';
 import { RelativeDatePipe } from '../../shared/pipes/relative-date.pipe';
 
@@ -14,7 +15,7 @@ if (typeof window !== 'undefined') {
 
 interface Transaction {
   id: string;
-  concept: string;
+  concept?: string | null;
   amount: number;
   type: 'income' | 'expense';
   category: string;
@@ -23,6 +24,16 @@ interface Transaction {
   portfolio_id: string | null;
 }
 
+interface ScheduledPayment {
+  id: string;
+  concept: string | null;
+  amount: number;
+  category: string | null;
+  is_active: boolean;
+  user_id: string;
+  portfolio_id: string | null;
+  account_id: string | null;
+}
 interface TopCategory {
   name: string;
   amount: number;
@@ -57,6 +68,9 @@ interface UpcomingWeddingPayment {
 
 // —— Constantes ———————————————————————————————————————————————————————————————
 
+const KEVIN_UUID = '8864b0dd-7e9c-40e5-a691-b99e535eb2a4';
+const ANGELY_UUID = '88e8ae3b-7264-4a12-8b2a-b72dca73d74f';
+
 const CATEGORY_EMOJIS: Record<string, string> = {
   'Arriendo': '🏠',
   'Servicios': '💡',
@@ -84,6 +98,7 @@ const MONTHS: string[] = [
 export class DashboardComponent implements OnInit, OnDestroy {
 
   private supabase = inject(SupabaseService);
+  private readonly progressBar = inject(ProgressBarService);
 
   @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('doughnutCanvas') doughnutCanvas!: ElementRef<HTMLCanvasElement>;
@@ -100,6 +115,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedMonth = signal<number | null>(new Date().getMonth());
   /** FIX #1: tipado estricto — nunca más "Object is of type unknown" */
   transactions = signal<Transaction[]>([]);
+  scheduledPayments = signal<ScheduledPayment[]>([]);
   kevinId = signal<string>('');
   angelyId = signal<string>('');
   // —— Wedding widget ———————————————————————————————————————————————————————————————
@@ -108,6 +124,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   weddingLoading = signal(false);
 
   MONTHS_LIST = MONTHS;
+
+  private isAporteHogarConcept(concept?: string | null): boolean {
+    const c = (concept ?? '').toLowerCase();
+    return c.includes('aporte') || c.includes('casa') || c.includes('hogar');
+  }
 
   periodLabel = computed(() => {
     const year = this.selectedYear();
@@ -165,18 +186,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return incomes;
   });
 
-  kevinTotal = computed(() =>
-    this.transactions()
-      .filter(t => t.type === 'expense' && t.user_id === this.kevinId())
-      .reduce((sum: number, t: Transaction) => sum + Number(t.amount), 0)
-  );
+  kevinTotal = computed(() => {
+    const kevinId = this.kevinId() || KEVIN_UUID;
 
-  angelyTotal = computed(() =>
-    this.transactions()
-      .filter(t => t.type === 'expense' && t.user_id === this.angelyId())
-      .reduce((sum: number, t: Transaction) => sum + Number(t.amount), 0)
-  );
+    const txKevin = this.transactions().filter(t =>
+      t.user_id === kevinId &&
+      t.type === 'income' &&
+      (
+        t.category === 'Aporte al hogar' ||
+        (t.category === 'Otro ingreso' && this.isAporteHogarConcept(t.concept))
+      )
+    );
 
+    return txKevin.reduce((sum: number, t: Transaction) => sum + Number(t.amount), 0);
+  });
+
+  angelyTotal = computed(() => {
+    const angelyId = this.angelyId() || ANGELY_UUID;
+
+    const txAngely = this.transactions().filter(t =>
+      t.user_id === angelyId &&
+      t.type === 'expense' &&
+      (
+        t.category === 'Aporte al hogar' ||
+        this.isAporteHogarConcept(t.concept)
+      )
+    );
+
+    const scheduledAngely = this.scheduledPayments().filter(s =>
+      s.user_id === angelyId &&
+      s.is_active === true &&
+      (s.category === 'Transporte' || s.category === 'Servicios' || s.category === 'Aporte al hogar')
+    );
+
+    const txTotal = txAngely.reduce((sum: number, t: Transaction) => sum + Number(t.amount), 0);
+    const scheduledTotal = scheduledAngely.reduce((sum: number, s: ScheduledPayment) => sum + Number(s.amount), 0);
+
+    return txTotal + scheduledTotal;
+  });
+
+  totalAportesHogar = computed(() => this.kevinTotal() + this.angelyTotal());
   topCategories = computed((): TopCategory[] => {
     const byCategory: Record<string, number> = {};
 
@@ -258,6 +307,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     await this.loadUserIds();
+    await this.loadScheduledPayments();
     await this.loadWeddingWidget();
   }
 
@@ -268,8 +318,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   // —— Métodos de datos ———————————————————————————————————————————————————————
-
   async loadUserIds(): Promise<void> {
+    let ok = false;
+    this.progressBar.start();
+
     try {
       const { data, error } = await this.supabase.client
         .from('profiles')
@@ -286,13 +338,44 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (kevin) this.kevinId.set(kevin.id);
         if (angely) this.angelyId.set(angely.id);
       }
+      ok = true;
     } catch (err) {
       console.error('Error cargando IDs de usuarios:', err);
+    } finally {
+      if (ok) this.progressBar.complete();
+      else this.progressBar.error();
+    }
+  }
+
+  async loadScheduledPayments(): Promise<void> {
+    let ok = false;
+    this.progressBar.start();
+
+    try {
+      const { data, error } = await this.supabase.client
+        .from('scheduled_payments')
+        .select('id, concept, amount, category, is_active, user_id, portfolio_id, account_id')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      this.scheduledPayments.set((data ?? []) as ScheduledPayment[]);
+      ok = true;
+      setTimeout(() => this.updateCharts(), 100);
+    } catch (err) {
+      console.error('Error cargando pagos programados:', err);
+      this.scheduledPayments.set([]);
+    } finally {
+      if (ok) this.progressBar.complete();
+      else this.progressBar.error();
     }
   }
 
 
   async loadWeddingWidget(): Promise<void> {
+    let ok = false;
+    this.progressBar.start();
     this.weddingLoading.set(true);
     try {
       const { data: budgets, error: budgetError } = await this.supabase.client
@@ -308,24 +391,34 @@ export class DashboardComponent implements OnInit, OnDestroy {
       if (!budget?.id) {
         this.weddingBudget.set(null);
         this.upcomingWeddingPayments.set([]);
+        ok = true;
         return;
       }
 
+      // FIX: trae `payments` para recalcular `paid_amount = SUM(payments.amount)`
+      // — la columna `wedding_expenses.paid_amount` puede estar desincronizada.
       const { data: expenses, error: expenseError } = await this.supabase.client
         .from('wedding_expenses')
-        .select('id, provider_name, amount, paid_amount, due_date, status')
+        .select(
+          'id, provider_name, amount, paid_amount, due_date, status, payments:wedding_expense_payments(amount)'
+        )
         .eq('wedding_budget_id', budget.id)
         .order('created_at', { ascending: false });
       if (expenseError) throw expenseError;
 
-      const rows = (expenses ?? []) as Array<{
+      const rows = ((expenses ?? []) as Array<{
         id: string;
         provider_name: string;
         amount: number;
         paid_amount: number | null;
         due_date: string | null;
         status: string;
-      }>;
+        payments?: Array<{ amount: number }> | null;
+      }>).map((r) => {
+        const pays = Array.isArray(r.payments) ? r.payments : [];
+        const sumPaid = pays.reduce((s, p) => s + Number(p.amount ?? 0), 0);
+        return { ...r, paid_amount: sumPaid };
+      });
 
       const active = rows.filter((r) => r.status !== 'cancelled');
       const planned = active.reduce((sum, r) => sum + Number(r.amount ?? 0), 0);
@@ -348,7 +441,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
 
       const pendingRows = rows.filter((r) => r.status === 'pending' || r.status === 'partial');
-const upcoming = pendingRows
+      const upcoming = pendingRows
         .slice()
         .sort((a, b) => {
           const ad = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
@@ -365,11 +458,14 @@ const upcoming = pendingRows
         }));
 
       this.upcomingWeddingPayments.set(upcoming);
+      ok = true;
     } catch (err) {
       console.error('Error cargando widget de boda:', err);
       this.weddingBudget.set(null);
-        this.upcomingWeddingPayments.set([]);
+      this.upcomingWeddingPayments.set([]);
     } finally {
+      if (ok) this.progressBar.complete();
+      else this.progressBar.error();
       this.weddingLoading.set(false);
     }
   }
@@ -383,6 +479,8 @@ const upcoming = pendingRows
   }
 
   async loadTransactions(): Promise<void> {
+    let ok = false;
+    this.progressBar.start();
     this.isLoading.set(true);
     try {
       const year = this.selectedYear();
@@ -408,12 +506,19 @@ const upcoming = pendingRows
 
       if (error) throw error;
 
-      this.transactions.set((data ?? []) as Transaction[]);
-      setTimeout(() => this.updateCharts(), 100);
+      // Excluir pagos del módulo de boda (concepto "💍 Boda: Pago a ...")
+      // — son cobros del wedding-tracker, no gastos del hogar.
+      const filtered = ((data ?? []) as Array<Transaction & { concept?: string | null }>)
+        .filter((t) => !((t.concept ?? '').toLowerCase().includes('boda:')));
 
+      this.transactions.set(filtered as Transaction[]);
+      setTimeout(() => this.updateCharts(), 100);
+      ok = true;
     } catch (err) {
       console.error('Error cargando transacciones:', err);
     } finally {
+      if (ok) this.progressBar.complete();
+      else this.progressBar.error();
       this.isLoading.set(false);
     }
   }
@@ -581,6 +686,11 @@ const upcoming = pendingRows
     });
   }
 }
+
+
+
+
+
 
 
 

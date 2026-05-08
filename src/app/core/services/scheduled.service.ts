@@ -144,6 +144,57 @@ export class ScheduledService {
       return false;
     }
   }
+  async executePayment(payment: ScheduledPayment): Promise<boolean> {
+    if (!payment.account_id) {
+      this.toast.error('Selecciona una cuenta para ejecutar el pago.');
+      return false;
+    }
+
+    this.isLoading.set(true);
+    this.progressBar.start();
+    try {
+      const today = new Date().toISOString().split('T')[0];
+
+      // 1) Insertar transacción (gasto)
+      const { error: txError } = await this.supabase.client
+        .from('transactions')
+        .insert({
+          user_id: payment.user_id,
+          account_id: payment.account_id,
+          portfolio_id: payment.portfolio_id,
+          concept: payment.concept,
+          amount: payment.amount,
+          type: TransactionType.Expense,
+          category: payment.category,
+          date: today,
+          is_scheduled: true,
+        });
+      if (txError) throw txError;
+
+      // 2) Actualizar last_sent
+      const nowIso = new Date().toISOString();
+      const { error: updateError } = await this.supabase.client
+        .from('scheduled_payments')
+        .update({ last_sent: nowIso })
+        .eq('id', payment.id);
+      if (updateError) throw updateError;
+
+      this.scheduledPayments.update((list) =>
+        list.map((p) => (p.id === payment.id ? { ...p, last_sent: nowIso } : p)),
+      );
+
+      this.progressBar.complete();
+      this.toast.success(`Pago "${payment.concept}" ejecutado`);
+      return true;
+    } catch (err) {
+      console.error('Error al ejecutar el pago programado:', err);
+      this.progressBar.error();
+      this.toast.error('Error al ejecutar el pago');
+      return false;
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
 
   async deleteScheduledPayment(id: string): Promise<boolean> {
     this.isLoading.set(true);
@@ -168,5 +219,6 @@ export class ScheduledService {
     }
   }
 }
+
 
 

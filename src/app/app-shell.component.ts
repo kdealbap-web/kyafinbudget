@@ -26,14 +26,14 @@ import { ProgressBarService } from './shared/services/progress-bar.service';
     ProgressBarComponent,
   ],
   template: `
-    <div class="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+    <div class="flex h-screen overflow-hidden bg-paper dark:bg-gray-950">
       <!-- Sidebar: recibe referencia para que el topbar pueda hacer toggle -->
       <app-sidebar #sidebar></app-sidebar>
 
       <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
         <!-- (menuToggle) conectado directamente al sidebar -->
         <app-topbar (menuToggle)="sidebar.toggleSidebar()"></app-topbar>
-         <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950">
+         <main class="flex-1 overflow-y-auto bg-paper dark:bg-gray-950">
           <router-outlet></router-outlet>
         </main>
       </div>

@@ -123,6 +123,9 @@ export class ScheduledListComponent implements OnInit {
   async toggleActive(payment: ScheduledPayment): Promise<void> {
     await this.scheduledService.toggleActive(payment.id, !payment.is_active);
   }
+  async execute(payment: ScheduledPayment): Promise<void> {
+    await this.scheduledService.executePayment(payment);
+  }
 
   async requestDelete(payment: ScheduledPayment): Promise<void> {
     const confirmed = await this.confirmDialog.open({
@@ -138,3 +141,4 @@ export class ScheduledListComponent implements OnInit {
     }
   }
 }
+

@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>finanzas360 — Boda · 12.IX.MMXXVI</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Geist', 'ui-sans-serif', 'system-ui'],
+            mono: ['"Geist Mono"', 'ui-monospace', 'monospace'],
+            display: ['"Cormorant Garamond"', 'serif'],
+            editorial: ['Fraunces', 'serif'],
+          },
+          colors: {
+            sand:    '#FBF6EE',
+            sandDeep:'#F4ECDD',
+            ivory:   '#FDFAF3',
+            ink: { 900:'#2A1D14', 700:'#4A3326', 500:'#7A5F4D', 300:'#B7A294', 100:'#E9DDD0' },
+            terra: {
+              900: '#5C2715',
+              800: '#75321C',
+              700: '#8E3F26',
+              600: '#A2533A',
+              500: '#C16B4F',
+              400: '#D6896C',
+              300: '#E2A48C',
+              200: '#EFC4B0',
+              100: '#F4DDD2',
+              50:  '#FAEDE5',
+            },
+            gold: {
+              700: '#9A7820',
+              600: '#B6912D',
+              500: '#D4AE5C',
+              400: '#E2C277',
+              200: '#F0DEAA',
+              100: '#F7ECC9',
+            },
+            sage:  '#8B9A6F',
+            sageTint: '#E5E9DA',
+          },
+          boxShadow: {
+            hairline: '0 0 0 1px #E9DDD0',
+            soft:     '0 1px 2px rgba(94,46,28,0.05), 0 1px 3px rgba(94,46,28,0.04)',
+            paper:    '0 30px 60px -30px rgba(94,46,28,0.30), 0 8px 20px -10px rgba(94,46,28,0.15)',
+            terra:    '0 18px 40px -20px rgba(193,107,79,0.55)',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root { color-scheme: light; }
+    html, body { background: #FBF6EE; }
+    body { font-family: 'Geist', sans-serif; color: #2A1D14; -webkit-font-smoothing: antialiased; }
+    .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" on, "lnum" on; }
+    .display  { font-family: 'Cormorant Garamond', serif; }
+    .editorial{ font-family: 'Fraunces', serif; }
+
+    /* Paper grain on cream */
+    .paper-grain { position: relative; }
+    .paper-grain::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .35;
+      background-image: radial-gradient(#5c2715 0.45px, transparent 0.45px);
+      background-size: 3px 3px; mix-blend-mode: multiply;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+    }
+
+    /* Terra hero */
+    .hero-terra {
+      background:
+        radial-gradient(900px 420px at 110% -20%, rgba(212,174,92,0.30), transparent 60%),
+        radial-gradient(700px 320px at -10% 120%, rgba(94,39,21,0.55), transparent 60%),
+        linear-gradient(160deg, #C16B4F 0%, #8E3F26 70%, #5C2715 100%);
+    }
+    .hero-grain::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .22; mix-blend-mode: soft-light;
+      background-image: radial-gradient(#fff 0.5px, transparent 0.5px);
+      background-size: 3px 3px;
+    }
+
+    /* Ornamental divider */
+    .ornament {
+      display: flex; align-items: center; gap: 14px; color: #C16B4F;
+    }
+    .ornament::before, .ornament::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, #C16B4F, transparent);
+    }
+
+    /* Reveal */
+    .reveal { opacity: 0; transform: translateY(8px); animation: rise .6s cubic-bezier(.2,.7,.2,1) forwards; }
+    .d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.19s}
+    .d4{animation-delay:.26s}.d5{animation-delay:.34s}.d6{animation-delay:.42s}.d7{animation-delay:.50s}
+    @keyframes rise { to { opacity: 1; transform: none; } }
+
+    /* Countdown ring */
+    .ring-progress { transition: stroke-dashoffset 1.2s cubic-bezier(.2,.7,.2,1); }
+
+    .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+    @media (max-width: 767.98px) { main { padding-bottom: 96px; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .ring-progress { transition: none !important; }
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #E9DDD0; border-radius: 999px; }
+  </style>
+</head>
+
+<body>
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-40 bg-sand/85 backdrop-blur-md border-b border-ink-100/70">
+    <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-4 sm:gap-8">
+        <a href="dashboard-preview.html" class="flex items-center gap-2 text-ink-700 hover:text-terra-700 transition">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          <span class="text-[12.5px] font-medium hidden sm:inline">Volver al panel</span>
+        </a>
+        <div class="hidden sm:block w-px h-5 bg-ink-100"></div>
+        <p class="text-[10.5px] sm:text-[11px] tracking-[0.28em] uppercase text-ink-500">Tablero · Boda</p>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button aria-label="Compartir" class="w-10 h-10 rounded-md grid place-items-center hover:bg-terra-50 transition cursor-pointer">
+          <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14"/></svg>
+        </button>
+        <button class="px-3.5 py-2 rounded-full bg-terra-500 text-ivory text-[12.5px] font-medium hover:bg-terra-600 transition cursor-pointer">
+          + Tarea
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-10 pt-8 sm:pt-12">
+
+    <!-- ─────────────────  HERO INVITATION  ───────────────── -->
+    <section class="reveal d1 relative overflow-hidden rounded-[28px] hero-terra text-ivory shadow-paper">
+      <div class="hero-grain"></div>
+
+      <!-- Ornamental gold corners -->
+      <span class="absolute top-5 left-5 sm:top-8 sm:left-8 w-12 h-12 sm:w-16 sm:h-16 border-t border-l border-gold-400/60 rounded-tl-[12px]"></span>
+      <span class="absolute top-5 right-5 sm:top-8 sm:right-8 w-12 h-12 sm:w-16 sm:h-16 border-t border-r border-gold-400/60 rounded-tr-[12px]"></span>
+      <span class="absolute bottom-5 left-5 sm:bottom-8 sm:left-8 w-12 h-12 sm:w-16 sm:h-16 border-b border-l border-gold-400/60 rounded-bl-[12px]"></span>
+      <span class="absolute bottom-5 right-5 sm:bottom-8 sm:right-8 w-12 h-12 sm:w-16 sm:h-16 border-b border-r border-gold-400/60 rounded-br-[12px]"></span>
+
+      <!-- Decorative botanical lines -->
+      <svg class="absolute -left-10 top-1/2 -translate-y-1/2 w-44 h-72 opacity-25 hidden sm:block" viewBox="0 0 200 320" fill="none" stroke="#F0DEAA" stroke-width="1">
+        <path d="M100 40 C 80 100 130 160 90 220 C 60 270 110 300 100 320"/>
+        <path d="M100 60 q -30 10 -45 -5"/>
+        <path d="M105 110 q 32 -4 50 -22"/>
+        <path d="M90 175 q -34 8 -48 -10"/>
+        <path d="M100 240 q 32 -8 48 -30"/>
+      </svg>
+      <svg class="absolute -right-10 top-1/2 -translate-y-1/2 w-44 h-72 opacity-25 hidden sm:block scale-x-[-1]" viewBox="0 0 200 320" fill="none" stroke="#F0DEAA" stroke-width="1">
+        <path d="M100 40 C 80 100 130 160 90 220 C 60 270 110 300 100 320"/>
+        <path d="M100 60 q -30 10 -45 -5"/>
+        <path d="M105 110 q 32 -4 50 -22"/>
+        <path d="M90 175 q -34 8 -48 -10"/>
+        <path d="M100 240 q 32 -8 48 -30"/>
+      </svg>
+
+      <div class="relative px-6 sm:px-12 lg:px-16 py-14 sm:py-20 lg:py-24 text-center">
+        <p class="text-[10.5px] sm:text-[11.5px] tracking-[0.4em] uppercase text-gold-200 font-medium">Save the date</p>
+
+        <div class="mt-6 sm:mt-8 ornament" aria-hidden="true">
+          <svg class="w-4 h-4 text-gold-400 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14 9 21 9 15.5 13.5 17.5 21 12 17 6.5 21 8.5 13.5 3 9 10 9z" opacity=".4"/><circle cx="12" cy="12" r="2"/></svg>
+        </div>
+
+        <h1 class="display mt-6 text-[60px] sm:text-[108px] lg:text-[136px] leading-[0.92] tracking-tight font-light italic">
+          Kevin
+          <span class="block not-italic font-light text-gold-300 text-[44px] sm:text-[78px] lg:text-[96px] my-1">&amp;</span>
+          <span class="italic">Angely</span>
+        </h1>
+
+        <div class="mt-8 sm:mt-12 ornament" aria-hidden="true">
+          <span class="text-gold-400 text-xl">✦</span>
+        </div>
+
+        <p class="mt-6 sm:mt-8 editorial text-[20px] sm:text-[28px] tracking-[0.18em] uppercase font-light text-ivory">
+          Sábado · <span class="num">12</span> · Septiembre · <span class="num">2026</span>
+        </p>
+        <p class="mt-3 text-[12px] sm:text-[13px] tracking-[0.3em] uppercase text-gold-200 font-mono num">
+          XII · IX · MMXXVI
+        </p>
+
+        <!-- Two venues — editorial pillars -->
+        <div class="mt-10 sm:mt-12 grid sm:grid-cols-[1fr_auto_1fr] gap-5 sm:gap-10 max-w-3xl mx-auto items-center">
+          <div class="text-center sm:text-right">
+            <p class="text-[10px] tracking-[0.32em] uppercase text-gold-300 font-medium">Ceremonia</p>
+            <p class="display text-[22px] sm:text-[26px] italic font-light leading-tight mt-2">
+              Parroquia<br class="hidden sm:block"/> <span class="not-italic">San Luis Beltrán</span>
+            </p>
+            <p class="text-[12px] tracking-[0.18em] uppercase text-ivory/75 mt-2 font-mono num">7:00 pm</p>
+          </div>
+          <div class="flex sm:flex-col items-center justify-center gap-2 text-gold-400">
+            <span class="hidden sm:block w-px h-12 bg-gold-400/40"></span>
+            <span class="text-lg">✦</span>
+            <span class="hidden sm:block w-px h-12 bg-gold-400/40"></span>
+            <span class="sm:hidden flex-1 h-px bg-gold-400/30 max-w-[80px]"></span>
+            <span class="sm:hidden flex-1 h-px bg-gold-400/30 max-w-[80px]"></span>
+          </div>
+          <div class="text-center sm:text-left">
+            <p class="text-[10px] tracking-[0.32em] uppercase text-gold-300 font-medium">Recepción</p>
+            <p class="display text-[22px] sm:text-[26px] italic font-light leading-tight mt-2">
+              Casona<br class="hidden sm:block"/> <span class="not-italic">del Prado</span>
+            </p>
+            <p class="text-[12px] tracking-[0.18em] uppercase text-ivory/75 mt-2 font-mono">tras la ceremonia</p>
+          </div>
+        </div>
+
+        <div class="mt-10 sm:mt-12 inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-ivory/10 backdrop-blur-sm ring-1 ring-gold-400/30 text-[12px] tracking-[0.18em] uppercase font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-gold-400 animate-pulse"></span>
+          Faltan <span class="font-mono num text-gold-200 text-[14px] tracking-normal">140 días</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────  COUNTDOWN + BUDGET  ───────────────── -->
+    <section class="grid lg:grid-cols-12 gap-4 sm:gap-6 mt-6 sm:mt-10">
+
+      <!-- Countdown ring -->
+      <article class="reveal d2 lg:col-span-5 bg-ivory rounded-[24px] shadow-hairline p-6 sm:p-8 paper-grain">
+        <div class="relative flex flex-col items-center text-center">
+          <p class="text-[10.5px] tracking-[0.28em] uppercase text-terra-700 font-medium">El camino al gran día</p>
+
+          <div class="relative mt-4 sm:mt-6">
+            <svg class="w-44 h-44 sm:w-56 sm:h-56" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="86" fill="none" stroke="#F4DDD2" stroke-width="10"/>
+              <circle cx="100" cy="100" r="86"
+                      class="ring-progress"
+                      fill="none" stroke="url(#terraGrad)" stroke-width="10" stroke-linecap="round"
+                      stroke-dasharray="540"
+                      stroke-dashoffset="121"
+                      transform="rotate(-90 100 100)"/>
+              <defs>
+                <linearGradient id="terraGrad" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#C16B4F"/>
+                  <stop offset="100%" stop-color="#8E3F26"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="display num text-[56px] sm:text-[72px] leading-none text-terra-700 font-light">140</span>
+              <span class="text-[10.5px] tracking-[0.3em] uppercase text-ink-500 mt-1">días</span>
+            </div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-3 gap-3 w-full text-center">
+            <div>
+              <p class="display num text-[24px] sm:text-[28px] text-terra-700">4</p>
+              <p class="text-[10.5px] tracking-[0.18em] uppercase text-ink-500">meses</p>
+            </div>
+            <div class="border-x border-ink-100">
+              <p class="display num text-[24px] sm:text-[28px] text-terra-700">20</p>
+              <p class="text-[10.5px] tracking-[0.18em] uppercase text-ink-500">semanas</p>
+            </div>
+            <div>
+              <p class="display num text-[24px] sm:text-[28px] text-terra-700">3,360</p>
+              <p class="text-[10.5px] tracking-[0.18em] uppercase text-ink-500">horas</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Budget -->
+      <article class="reveal d3 lg:col-span-7 bg-ivory rounded-[24px] shadow-hairline p-6 sm:p-8">
+        <header class="flex items-end justify-between gap-4">
+          <div>
+            <p class="text-[10.5px] tracking-[0.28em] uppercase text-terra-700 font-medium">Presupuesto</p>
+            <h2 class="display text-[32px] sm:text-[42px] leading-tight tracking-tight mt-1">
+              <span class="num">$10,600</span>
+              <span class="text-ink-300 text-[20px] sm:text-[26px] italic">de</span>
+              <span class="num text-ink-500">$15,500</span>
+            </h2>
+            <p class="text-[12.5px] text-ink-500 mt-1">68.4% comprometido · queda <span class="font-mono num text-terra-700">$4,900</span></p>
+          </div>
+          <button class="text-[12px] font-medium text-terra-700 hover:underline cursor-pointer hidden sm:block">Editar →</button>
+        </header>
+
+        <!-- Stacked progress bar -->
+        <div class="mt-6 h-3.5 rounded-full bg-sandDeep overflow-hidden flex">
+          <div class="h-full bg-terra-700" style="width:42%" title="Reservado"></div>
+          <div class="h-full bg-terra-400" style="width:18%" title="Comprometido"></div>
+          <div class="h-full bg-gold-400" style="width:8.4%" title="Próximo"></div>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[12px] text-ink-500">
+          <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-terra-700"></span>Pagado <span class="font-mono num text-ink-900">$6,510</span></span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-terra-400"></span>Comprometido <span class="font-mono num text-ink-900">$2,790</span></span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-gold-400"></span>Próximo <span class="font-mono num text-ink-900">$1,300</span></span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-sandDeep"></span>Disponible <span class="font-mono num text-ink-900">$4,900</span></span>
+        </div>
+
+        <!-- Top categories -->
+        <div class="mt-7 grid grid-cols-2 gap-3 sm:gap-4">
+          <div class="rounded-2xl bg-sand p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] tracking-[0.18em] uppercase text-ink-500">Lugar</span>
+              <span class="font-mono num text-[12px] text-terra-700">100%</span>
+            </div>
+            <p class="font-mono num text-[18px] mt-2 text-ink-900">$4,200</p>
+            <div class="mt-2 h-1.5 rounded-full bg-sandDeep overflow-hidden">
+              <div class="h-full bg-terra-700 rounded-full" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="rounded-2xl bg-sand p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] tracking-[0.18em] uppercase text-ink-500">Banquete</span>
+              <span class="font-mono num text-[12px] text-terra-700">62%</span>
+            </div>
+            <p class="font-mono num text-[18px] mt-2 text-ink-900">$2,480 <span class="text-ink-300 text-[13px]">/ $4,000</span></p>
+            <div class="mt-2 h-1.5 rounded-full bg-sandDeep overflow-hidden">
+              <div class="h-full bg-terra-500 rounded-full" style="width:62%"></div>
+            </div>
+          </div>
+          <div class="rounded-2xl bg-sand p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] tracking-[0.18em] uppercase text-ink-500">Fotografía</span>
+              <span class="font-mono num text-[12px] text-terra-700">50%</span>
+            </div>
+            <p class="font-mono num text-[18px] mt-2 text-ink-900">$900 <span class="text-ink-300 text-[13px]">/ $1,800</span></p>
+            <div class="mt-2 h-1.5 rounded-full bg-sandDeep overflow-hidden">
+              <div class="h-full bg-terra-400 rounded-full" style="width:50%"></div>
+            </div>
+          </div>
+          <div class="rounded-2xl bg-sand p-4">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] tracking-[0.18em] uppercase text-ink-500">Vestido</span>
+              <span class="font-mono num text-[12px] text-gold-700">20%</span>
+            </div>
+            <p class="font-mono num text-[18px] mt-2 text-ink-900">$320 <span class="text-ink-300 text-[13px]">/ $1,600</span></p>
+            <div class="mt-2 h-1.5 rounded-full bg-sandDeep overflow-hidden">
+              <div class="h-full bg-gold-500 rounded-full" style="width:20%"></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ─────────────────  CHAPTERS / TIMELINE  ───────────────── -->
+    <section class="reveal d4 mt-6 sm:mt-10">
+      <div class="flex items-end justify-between gap-4 mb-5 sm:mb-7">
+        <div>
+          <p class="text-[10.5px] tracking-[0.28em] uppercase text-terra-700 font-medium">Capítulos</p>
+          <h2 class="display text-[28px] sm:text-[36px] tracking-tight mt-1">El camino, mes a mes</h2>
+        </div>
+        <span class="text-[11.5px] text-ink-500 hidden sm:block">5 hitos restantes</span>
+      </div>
+
+      <ol class="relative grid sm:grid-cols-5 gap-3 sm:gap-4">
+        <!-- timeline rail desktop -->
+        <span class="hidden sm:block absolute top-7 left-[10%] right-[10%] h-px bg-gradient-to-r from-terra-200 via-terra-500 to-gold-300"></span>
+
+        <li class="relative bg-ivory rounded-2xl p-4 shadow-hairline">
+          <span class="absolute -top-3 left-4 sm:left-1/2 sm:-translate-x-1/2 w-6 h-6 rounded-full bg-terra-700 text-ivory grid place-items-center text-[10px] font-semibold ring-4 ring-sand">✓</span>
+          <p class="text-[10px] tracking-[0.22em] uppercase text-terra-700 font-medium mt-3">Mayo</p>
+          <p class="display text-[18px] mt-1 leading-tight">Lugares confirmados</p>
+          <p class="text-[11.5px] text-ink-500 mt-1">San Luis Beltrán · Casona del Prado</p>
+        </li>
+        <li class="relative bg-ivory rounded-2xl p-4 shadow-hairline">
+          <span class="absolute -top-3 left-4 sm:left-1/2 sm:-translate-x-1/2 w-6 h-6 rounded-full bg-terra-500 text-ivory grid place-items-center text-[10px] font-semibold ring-4 ring-sand">2</span>
+          <p class="text-[10px] tracking-[0.22em] uppercase text-terra-700 font-medium mt-3">Junio</p>
+          <p class="display text-[18px] mt-1 leading-tight">Banquete &amp; menú</p>
+          <p class="text-[11.5px] text-ink-500 mt-1">Cata el 14 jun</p>
+        </li>
+        <li class="relative bg-ivory rounded-2xl p-4 shadow-hairline ring-2 ring-terra-500">
+          <span class="absolute -top-3 left-4 sm:left-1/2 sm:-translate-x-1/2 w-6 h-6 rounded-full bg-terra-500 text-ivory grid place-items-center text-[10px] font-semibold ring-4 ring-sand">3</span>
+          <p class="text-[10px] tracking-[0.22em] uppercase text-terra-700 font-medium mt-3">Julio</p>
+          <p class="display text-[18px] mt-1 leading-tight">Vestido &amp; trajes</p>
+          <p class="text-[11.5px] text-ink-500 mt-1">Pruebas iniciadas</p>
+          <span class="absolute top-2 right-2 text-[9px] tracking-[0.18em] uppercase text-terra-700 bg-terra-50 px-1.5 py-0.5 rounded-full ring-1 ring-terra-200">Ahora</span>
+        </li>
+        <li class="relative bg-ivory rounded-2xl p-4 shadow-hairline">
+          <span class="absolute -top-3 left-4 sm:left-1/2 sm:-translate-x-1/2 w-6 h-6 rounded-full bg-gold-500 text-ink-900 grid place-items-center text-[10px] font-semibold ring-4 ring-sand">4</span>
+          <p class="text-[10px] tracking-[0.22em] uppercase text-gold-700 font-medium mt-3">Agosto</p>
+          <p class="display text-[18px] mt-1 leading-tight">Invitaciones</p>
+          <p class="text-[11.5px] text-ink-500 mt-1">Diseño + envío</p>
+        </li>
+        <li class="relative bg-ivory rounded-2xl p-4 shadow-hairline">
+          <span class="absolute -top-3 left-4 sm:left-1/2 sm:-translate-x-1/2 w-6 h-6 rounded-full bg-ivory text-terra-700 ring-2 ring-terra-300 grid place-items-center text-[10px] font-semibold ring-4 ring-sand">5</span>
+          <p class="text-[10px] tracking-[0.22em] uppercase text-ink-500 font-medium mt-3">Septiembre</p>
+          <p class="display text-[18px] mt-1 leading-tight">El gran día</p>
+          <p class="text-[11.5px] text-ink-500 mt-1">12 sep · 4:00 pm</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ─────────────────  VENDORS + GUESTS  ───────────────── -->
+    <section class="grid lg:grid-cols-12 gap-4 sm:gap-6 mt-6 sm:mt-10">
+
+      <article class="reveal d5 lg:col-span-7 bg-ivory rounded-[24px] shadow-hairline p-6 sm:p-8">
+        <header class="flex items-end justify-between mb-5">
+          <div>
+            <p class="text-[10.5px] tracking-[0.28em] uppercase text-terra-700 font-medium">Proveedores</p>
+            <h2 class="display text-[26px] sm:text-[32px] tracking-tight mt-1">El equipo del día</h2>
+          </div>
+          <button class="text-[12px] font-medium text-terra-700 hover:underline cursor-pointer">Añadir +</button>
+        </header>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div class="rounded-2xl bg-sand ring-1 ring-ink-100/60 p-4 hover:bg-terra-50 hover:ring-terra-200 transition cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="w-9 h-9 rounded-lg bg-terra-100 grid place-items-center text-terra-700">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21V10l9-6 9 6v11"/><path d="M9 21v-7h6v7"/></svg>
+              </span>
+              <span class="text-[10px] tracking-[0.18em] uppercase text-emerald-700">Pagado</span>
+            </div>
+            <p class="display text-[18px] mt-3 leading-tight">Hacienda San Felipe</p>
+            <p class="text-[11.5px] text-ink-500 mt-0.5">Lugar · Cundinamarca</p>
+          </div>
+          <div class="rounded-2xl bg-sand ring-1 ring-ink-100/60 p-4 hover:bg-terra-50 hover:ring-terra-200 transition cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="w-9 h-9 rounded-lg bg-gold-100 grid place-items-center text-gold-700">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6a3 3 0 0 1 6 0v6"/></svg>
+              </span>
+              <span class="text-[10px] tracking-[0.18em] uppercase text-gold-700">Anticipo</span>
+            </div>
+            <p class="display text-[18px] mt-3 leading-tight">Sazón &amp; Mantel</p>
+            <p class="text-[11.5px] text-ink-500 mt-0.5">Banquete · 120 invitados</p>
+          </div>
+          <div class="rounded-2xl bg-sand ring-1 ring-ink-100/60 p-4 hover:bg-terra-50 hover:ring-terra-200 transition cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="w-9 h-9 rounded-lg bg-terra-100 grid place-items-center text-terra-700">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="4"/><path d="M8 4h8"/></svg>
+              </span>
+              <span class="text-[10px] tracking-[0.18em] uppercase text-gold-700">50%</span>
+            </div>
+            <p class="display text-[18px] mt-3 leading-tight">Estudio Lumière</p>
+            <p class="text-[11.5px] text-ink-500 mt-0.5">Fotografía + video</p>
+          </div>
+          <div class="rounded-2xl bg-sand ring-1 ring-ink-100/60 p-4 hover:bg-terra-50 hover:ring-terra-200 transition cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="w-9 h-9 rounded-lg bg-sageTint grid place-items-center text-sage">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 2v8M6 12a6 6 0 0 0 12 0M12 22V12"/></svg>
+              </span>
+              <span class="text-[10px] tracking-[0.18em] uppercase text-sage">Confirm.</span>
+            </div>
+            <p class="display text-[18px] mt-3 leading-tight">Floristería Atelier</p>
+            <p class="text-[11.5px] text-ink-500 mt-0.5">Decoración &amp; ramos</p>
+          </div>
+          <div class="rounded-2xl bg-sand ring-1 ring-ink-100/60 p-4 hover:bg-terra-50 hover:ring-terra-200 transition cursor-pointer">
+            <div class="flex items-center justify-between">
+              <span class="w-9 h-9 rounded-lg bg-gold-100 grid place-items-center text-gold-700">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+              </span>
+              <span class="text-[10px] tracking-[0.18em] uppercase text-ink-300">Pendiente</span>
+            </div>
+            <p class="display text-[18px] mt-3 leading-tight">DJ Aurora</p>
+            <p class="text-[11.5px] text-ink-500 mt-0.5">Música &amp; iluminación</p>
+          </div>
+          <div class="rounded-2xl bg-sand/60 ring-1 ring-dashed ring-ink-300/60 p-4 grid place-items-center text-center text-ink-500 hover:bg-sand hover:ring-terra-300 hover:text-terra-700 transition cursor-pointer min-h-[124px]">
+            <div>
+              <span class="w-9 h-9 mx-auto rounded-lg bg-ivory ring-1 ring-ink-100 grid place-items-center">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+              <p class="text-[12px] mt-2 font-medium">Añadir proveedor</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Guests -->
+      <article class="reveal d6 lg:col-span-5 bg-ivory rounded-[24px] shadow-hairline p-6 sm:p-8">
+        <header class="flex items-end justify-between mb-5">
+          <div>
+            <p class="text-[10.5px] tracking-[0.28em] uppercase text-terra-700 font-medium">Invitados</p>
+            <h2 class="display text-[26px] sm:text-[32px] tracking-tight mt-1">Lista &amp; confirmaciones</h2>
+          </div>
+          <span class="text-[12px] font-mono num text-ink-500">100 invitados</span>
+        </header>
+
+        <div class="flex items-end gap-4">
+          <div class="flex-1">
+            <p class="display num text-[44px] sm:text-[52px] leading-none text-terra-700">58</p>
+            <p class="text-[10.5px] tracking-[0.22em] uppercase text-ink-500 mt-1">confirmados</p>
+          </div>
+          <div class="flex-1">
+            <p class="display num text-[28px] leading-none text-gold-700">30</p>
+            <p class="text-[10.5px] tracking-[0.22em] uppercase text-ink-500 mt-1">pendientes</p>
+          </div>
+          <div class="flex-1">
+            <p class="display num text-[28px] leading-none text-ink-300">12</p>
+            <p class="text-[10.5px] tracking-[0.22em] uppercase text-ink-500 mt-1">no asisten</p>
+          </div>
+        </div>
+
+        <!-- Stacked attendance bar -->
+        <div class="mt-5 h-3 rounded-full bg-sandDeep overflow-hidden flex">
+          <div class="h-full bg-terra-700" style="width:58%"></div>
+          <div class="h-full bg-gold-400" style="width:30%"></div>
+          <div class="h-full bg-ink-100" style="width:12%"></div>
+        </div>
+
+        <div class="mt-6 space-y-2">
+          <div class="flex items-center gap-3 p-3 -mx-3 rounded-xl hover:bg-sand transition">
+            <span class="w-9 h-9 rounded-full bg-terra-100 text-terra-700 grid place-items-center text-[11px] font-semibold">FA</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-[13.5px] font-medium truncate">Familia Acosta &amp; De Alba</p>
+              <p class="text-[11.5px] text-ink-500">22 personas · todos confirmados</p>
+            </div>
+            <span class="text-[10px] tracking-[0.18em] uppercase text-emerald-700 bg-sageTint/60 px-2 py-0.5 rounded-full">Listo</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 -mx-3 rounded-xl hover:bg-sand transition">
+            <span class="w-9 h-9 rounded-full bg-gold-100 text-gold-700 grid place-items-center text-[11px] font-semibold">PT</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-[13.5px] font-medium truncate">Padrinos &amp; testigos</p>
+              <p class="text-[11.5px] text-ink-500">12 personas · 3 sin confirmar</p>
+            </div>
+            <span class="text-[10px] tracking-[0.18em] uppercase text-gold-700 bg-gold-50 px-2 py-0.5 rounded-full">Pendiente</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 -mx-3 rounded-xl hover:bg-sand transition">
+            <span class="w-9 h-9 rounded-full bg-sand ring-1 ring-ink-100 text-ink-700 grid place-items-center text-[11px] font-semibold">AT</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-[13.5px] font-medium truncate">Amigos &amp; trabajo</p>
+              <p class="text-[11.5px] text-ink-500">66 personas · 24 confirmados</p>
+            </div>
+            <span class="text-[10px] tracking-[0.18em] uppercase text-ink-500 bg-ink-100 px-2 py-0.5 rounded-full">36%</span>
+          </div>
+        </div>
+
+        <button class="mt-5 w-full h-11 rounded-full bg-terra-500 text-ivory text-[13px] font-medium hover:bg-terra-600 transition cursor-pointer">
+          Gestionar invitados
+        </button>
+      </article>
+    </section>
+
+    <!-- ─────────────────  INVITACIÓN DIGITAL (módulo nuevo)  ───────────────── -->
+    <section class="reveal d6 mt-6 sm:mt-10 relative overflow-hidden rounded-[28px] bg-gradient-to-br from-ivory via-sand to-terra-50 shadow-hairline ring-1 ring-terra-100">
+      <!-- decorative background -->
+      <span class="absolute -right-32 -top-32 w-[420px] h-[420px] rounded-full ring-1 ring-terra-200/60"></span>
+      <span class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-terra-100/50 blur-2xl"></span>
+      <span class="absolute right-10 bottom-10 w-2 h-2 rounded-full bg-gold-500"></span>
+      <span class="absolute right-32 top-16 w-1.5 h-1.5 rounded-full bg-terra-400"></span>
+
+      <div class="relative grid lg:grid-cols-[340px_1fr] xl:grid-cols-[380px_1fr] gap-8 lg:gap-12 p-6 sm:p-10 lg:p-12 items-center">
+
+        <!-- Phone mockup with invitation -->
+        <div class="relative mx-auto w-full max-w-[280px] lg:max-w-none">
+          <div class="absolute -inset-4 rounded-[48px] bg-terra-100/40 blur-2xl"></div>
+          <div class="relative rounded-[44px] bg-gradient-to-b from-terra-700 to-terra-900 p-2.5 shadow-paper">
+            <div class="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-1 rounded-full bg-ivory/20"></div>
+            <div class="relative rounded-[38px] hero-terra text-ivory aspect-[9/18] overflow-hidden">
+              <div class="hero-grain"></div>
+              <!-- Invitation content -->
+              <div class="relative h-full flex flex-col items-center text-center px-5 py-7">
+                <span class="text-[8px] tracking-[0.4em] uppercase text-gold-300 font-medium">Invitación</span>
+                <div class="ornament w-full mt-3"><span class="text-gold-400 text-xs">✦</span></div>
+
+                <p class="display italic text-[15px] mt-4 text-ivory/80">Hola, querido invitado</p>
+                <h3 class="display italic text-[34px] sm:text-[40px] leading-none mt-3 font-light">
+                  Kevin
+                  <span class="block not-italic text-gold-300 text-[22px] my-0.5">&amp;</span>
+                  <span class="italic">Angely</span>
+                </h3>
+
+                <p class="editorial mt-5 text-[10px] tracking-[0.28em] uppercase text-gold-200">
+                  12 · IX · MMXXVI
+                </p>
+                <p class="text-[10px] mt-1.5 text-ivory/70 font-mono num">7:00 pm</p>
+
+                <span class="mt-4 w-10 h-px bg-gold-400/50"></span>
+
+                <p class="text-[10px] tracking-[0.18em] uppercase text-gold-300 mt-4">San Luis Beltrán</p>
+                <p class="text-[9.5px] text-ivory/55 mt-0.5">Casona del Prado · recepción</p>
+
+                <div class="mt-auto w-full">
+                  <button class="w-full h-9 rounded-full bg-ivory text-terra-700 text-[11px] font-semibold tracking-wide">
+                    Confirmar asistencia
+                  </button>
+                  <p class="text-[8.5px] text-ivory/45 mt-2 tracking-[0.18em] uppercase">RSVP digital · k&amp;a.com/maria</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Floating delivery bubbles -->
+          <div class="absolute -left-6 top-10 w-12 h-12 rounded-2xl bg-ivory shadow-soft grid place-items-center ring-1 ring-emerald-100">
+            <svg class="w-5 h-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.4A10 10 0 1 0 12 2zm5.4 13.2c-.2.7-1.3 1.4-1.9 1.5-.5.1-1.1.2-3.5-.7-3-1.2-4.9-4.2-5-4.4-.2-.2-1.2-1.6-1.2-3 0-1.5.8-2.2 1-2.5.3-.3.6-.4 1-.4h.7c.2 0 .5 0 .8.6l1 2.4c.1.3.2.5 0 .8l-.4.5c-.2.2-.4.4-.2.7.2.4.9 1.5 2 2.4 1.3 1.2 2.5 1.6 2.9 1.7.3.1.5.1.7-.1l.7-.9c.2-.3.5-.2.8-.1l2.3 1.1c.3.2.5.2.6.4 0 .2 0 1.2-.2 1.9z"/></svg>
+          </div>
+          <div class="absolute -right-4 bottom-16 w-10 h-10 rounded-2xl bg-ivory shadow-soft grid place-items-center ring-1 ring-blue-100 rotate-3">
+            <svg class="w-4 h-4 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></svg>
+          </div>
+        </div>
+
+        <!-- Module details -->
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-50 ring-1 ring-gold-200 text-[10.5px] tracking-[0.22em] uppercase text-gold-700 font-medium">
+            <span class="w-1.5 h-1.5 rounded-full bg-gold-500 animate-pulse"></span>
+            Próximamente · Beta
+          </div>
+          <h2 class="display text-[32px] sm:text-[40px] tracking-tight mt-4 leading-[1.05]">
+            Invitación digital, <span class="italic text-terra-700">inteligente</span>.
+          </h2>
+          <p class="text-[14px] text-ink-500 mt-3 max-w-lg leading-relaxed">
+            Un enlace único por invitado, RSVP automático, recordatorios suaves y mapa al lugar.
+            Toda la confirmación de asistencia, fluye directo a tu lista.
+          </p>
+
+          <!-- Smart features grid -->
+          <ul class="mt-6 grid sm:grid-cols-2 gap-2.5">
+            <li class="flex items-start gap-3 p-3 rounded-xl bg-ivory/70 ring-1 ring-ink-100">
+              <span class="w-8 h-8 rounded-lg bg-terra-100 text-terra-700 grid place-items-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 13a5 5 0 0 0 7 0l4-4a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-4 4a5 5 0 0 0 7 7l1-1"/></svg>
+              </span>
+              <div>
+                <p class="text-[12.5px] font-medium leading-tight">Enlace único</p>
+                <p class="text-[11px] text-ink-500 mt-0.5">Cada invitado tiene su propio RSVP.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-3 p-3 rounded-xl bg-ivory/70 ring-1 ring-ink-100">
+              <span class="w-8 h-8 rounded-lg bg-gold-100 text-gold-700 grid place-items-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              </span>
+              <div>
+                <p class="text-[12.5px] font-medium leading-tight">Recordatorios suaves</p>
+                <p class="text-[11px] text-ink-500 mt-0.5">A los 7, 3 y 1 día — sin spam.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-3 p-3 rounded-xl bg-ivory/70 ring-1 ring-ink-100">
+              <span class="w-8 h-8 rounded-lg bg-sageTint text-sage grid place-items-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
+              <div>
+                <p class="text-[12.5px] font-medium leading-tight">Mapa &amp; horario</p>
+                <p class="text-[11px] text-ink-500 mt-0.5">San Luis Beltrán → Casona del Prado.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-3 p-3 rounded-xl bg-ivory/70 ring-1 ring-ink-100">
+              <span class="w-8 h-8 rounded-lg bg-terra-100 text-terra-700 grid place-items-center shrink-0">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11V8a2 2 0 0 1 2-2h3M3 13v3a2 2 0 0 0 2 2h3M21 11V8a2 2 0 0 0-2-2h-3M21 13v3a2 2 0 0 1-2 2h-3"/><path d="M9 12h6"/></svg>
+              </span>
+              <div>
+                <p class="text-[12.5px] font-medium leading-tight">Preferencia de comida</p>
+                <p class="text-[11px] text-ink-500 mt-0.5">Veggie, alergias, niños — todo en una pregunta.</p>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Channels + readiness bar -->
+          <div class="mt-7 flex flex-col sm:flex-row sm:items-end justify-between gap-5 pt-6 border-t border-ink-100">
+            <div>
+              <p class="text-[10.5px] tracking-[0.22em] uppercase text-ink-500 font-medium">Canales de envío</p>
+              <div class="flex items-center gap-2 mt-3">
+                <span title="WhatsApp" class="w-10 h-10 rounded-xl bg-emerald-50 ring-1 ring-emerald-100 grid place-items-center text-emerald-600">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.4A10 10 0 1 0 12 2zm5.4 13.2c-.2.7-1.3 1.4-1.9 1.5-.5.1-1.1.2-3.5-.7-3-1.2-4.9-4.2-5-4.4-.2-.2-1.2-1.6-1.2-3 0-1.5.8-2.2 1-2.5.3-.3.6-.4 1-.4h.7c.2 0 .5 0 .8.6l1 2.4c.1.3.2.5 0 .8l-.4.5c-.2.2-.4.4-.2.7.2.4.9 1.5 2 2.4 1.3 1.2 2.5 1.6 2.9 1.7.3.1.5.1.7-.1l.7-.9c.2-.3.5-.2.8-.1l2.3 1.1c.3.2.5.2.6.4 0 .2 0 1.2-.2 1.9z"/></svg>
+                </span>
+                <span title="Email" class="w-10 h-10 rounded-xl bg-blue-50 ring-1 ring-blue-100 grid place-items-center text-blue-700">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 7 9-7"/></svg>
+                </span>
+                <span title="SMS" class="w-10 h-10 rounded-xl bg-gold-50 ring-1 ring-gold-200 grid place-items-center text-gold-700">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 8h10M7 12h6M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+                </span>
+                <span title="QR" class="w-10 h-10 rounded-xl bg-terra-50 ring-1 ring-terra-200 grid place-items-center text-terra-700">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M20 14v3M14 20h3M20 20v.01"/></svg>
+                </span>
+                <span title="Link" class="w-10 h-10 rounded-xl bg-sand ring-1 ring-ink-100 grid place-items-center text-ink-700">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 13a5 5 0 0 0 7 0l4-4a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-4 4a5 5 0 0 0 7 7l1-1"/></svg>
+                </span>
+              </div>
+            </div>
+
+            <div class="sm:text-right">
+              <p class="text-[10.5px] tracking-[0.22em] uppercase text-ink-500 font-medium">Listos para enviar</p>
+              <div class="flex sm:justify-end items-baseline gap-2 mt-2">
+                <span class="display num text-[32px] leading-none text-terra-700">75</span>
+                <span class="text-[13px] text-ink-500 font-mono num">/ 100</span>
+              </div>
+              <div class="w-full sm:w-48 h-1.5 rounded-full bg-sandDeep overflow-hidden mt-2">
+                <div class="h-full bg-gradient-to-r from-terra-500 to-gold-500 rounded-full" style="width:75%"></div>
+              </div>
+              <p class="text-[11px] text-ink-500 mt-2">25 invitados sin contacto · <button class="text-terra-700 font-medium hover:underline cursor-pointer">completar →</button></p>
+            </div>
+          </div>
+
+          <!-- Primary CTA -->
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <button class="px-5 py-3 rounded-full bg-terra-700 text-ivory text-[13px] font-medium hover:bg-terra-800 transition cursor-pointer flex items-center gap-2 shadow-terra">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>
+              Activar módulo
+            </button>
+            <button class="px-4 py-3 rounded-full ring-1 ring-ink-100 text-[13px] font-medium text-ink-700 hover:bg-ivory transition cursor-pointer">
+              Ver plantillas
+            </button>
+            <span class="text-[11px] text-ink-500">Disponible en julio · te avisamos.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────────  TASKS THIS WEEK  ───────────────── -->
+    <section class="reveal d7 mt-6 sm:mt-10 mb-12 bg-ivory rounded-[24px] shadow-hairline p-6 sm:p-8">
+      <header class="flex items-end justify-between mb-5">
+        <div>
+          <p class="text-[10.5px] tracking-[0.28em] uppercase text-terra-700 font-medium">Esta semana</p>
+          <h2 class="display text-[26px] sm:text-[32px] tracking-tight mt-1">Tareas pendientes</h2>
+        </div>
+        <span class="text-[11px] tracking-[0.18em] uppercase text-terra-700 bg-terra-50 ring-1 ring-terra-200 px-2 py-1 rounded-md font-medium">3 abiertas</span>
+      </header>
+
+      <ul class="space-y-2">
+        <li class="flex items-start gap-4 p-3 -mx-3 rounded-xl hover:bg-sand transition">
+          <button class="mt-0.5 w-5 h-5 rounded-md ring-1 ring-terra-300 hover:bg-terra-50 transition cursor-pointer shrink-0"></button>
+          <div class="flex-1 min-w-0">
+            <p class="text-[14px] font-medium">Confirmar menú con Sazón &amp; Mantel</p>
+            <p class="text-[12px] text-ink-500 mt-0.5">Banquete · vence el 28 abr · prioridad alta</p>
+          </div>
+          <span class="text-[10.5px] tracking-[0.18em] uppercase text-terra-700 px-2 py-1 rounded-md bg-terra-50 font-medium">Hoy</span>
+        </li>
+        <li class="flex items-start gap-4 p-3 -mx-3 rounded-xl hover:bg-sand transition">
+          <button class="mt-0.5 w-5 h-5 rounded-md ring-1 ring-ink-300 hover:bg-terra-50 transition cursor-pointer shrink-0"></button>
+          <div class="flex-1 min-w-0">
+            <p class="text-[14px] font-medium">Segunda prueba del vestido</p>
+            <p class="text-[12px] text-ink-500 mt-0.5">Vestido · sábado 4:00 pm · Atelier Bogotá</p>
+          </div>
+          <span class="text-[10.5px] tracking-[0.18em] uppercase text-gold-700 px-2 py-1 rounded-md bg-gold-50 font-medium">Sáb</span>
+        </li>
+        <li class="flex items-start gap-4 p-3 -mx-3 rounded-xl hover:bg-sand transition">
+          <button class="mt-0.5 w-5 h-5 rounded-md ring-1 ring-ink-300 hover:bg-terra-50 transition cursor-pointer shrink-0"></button>
+          <div class="flex-1 min-w-0">
+            <p class="text-[14px] font-medium">Diseño de invitaciones (1ª revisión)</p>
+            <p class="text-[12px] text-ink-500 mt-0.5">Invitaciones · enviar borrador a imprenta</p>
+          </div>
+          <span class="text-[10.5px] tracking-[0.18em] uppercase text-ink-500 px-2 py-1 rounded-md bg-ink-100/70 font-medium">Lun</span>
+        </li>
+        <li class="flex items-start gap-4 p-3 -mx-3 rounded-xl bg-sand/50 transition opacity-60">
+          <button class="mt-0.5 w-5 h-5 rounded-md bg-terra-700 text-ivory grid place-items-center cursor-pointer shrink-0">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 5 5L20 7"/></svg>
+          </button>
+          <div class="flex-1 min-w-0">
+            <p class="text-[14px] font-medium line-through">Pago final del lugar</p>
+            <p class="text-[12px] text-ink-500 mt-0.5">Lugar · pagado el 22 abr</p>
+          </div>
+          <span class="text-[10.5px] tracking-[0.18em] uppercase text-emerald-700 px-2 py-1 rounded-md bg-sageTint/60 font-medium">Listo</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Quote / journal closer -->
+    <section class="reveal d7 my-14 sm:my-20">
+      <div class="ornament" aria-hidden="true">
+        <span class="text-terra-500 text-xl">✦</span>
+      </div>
+      <p class="display italic text-center text-[28px] sm:text-[40px] leading-[1.15] tracking-tight text-ink-700 max-w-3xl mx-auto mt-7 px-4">
+        “Dos vidas que se eligen no se suman: se vuelven un solo horizonte, una sola casa, un solo para siempre.”
+      </p>
+      <p class="text-center editorial italic text-[15px] sm:text-[17px] text-terra-700 mt-5 tracking-wide">
+        — Kevin <span class="text-gold-500 mx-1.5">&amp;</span> Angely
+      </p>
+      <div class="ornament max-w-md mx-auto mt-8" aria-hidden="true">
+        <span class="text-gold-500 text-base">✦</span>
+      </div>
+      <p class="text-center text-[10.5px] tracking-[0.32em] uppercase text-ink-300 mt-7">
+        finanzas360 · tablero de boda · preview
+      </p>
+    </section>
+
+  </main>
+
+  <!-- Mobile bottom nav (matches dashboard) -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sand/95 backdrop-blur-md border-t border-ink-100 pb-safe">
+    <div class="grid grid-cols-5 items-end h-16 px-2 max-w-[480px] mx-auto relative">
+      <a href="dashboard-preview.html" class="flex flex-col items-center justify-center gap-0.5 text-ink-500">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+        <span class="text-[10px]">Inicio</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center gap-0.5 text-ink-500">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>
+        <span class="text-[10px]">Cuentas</span>
+      </a>
+      <div class="flex justify-center -mt-6">
+        <button aria-label="Nueva tarea" class="w-14 h-14 rounded-full bg-terra-500 text-ivory grid place-items-center shadow-terra ring-4 ring-sand hover:bg-terra-600 transition cursor-pointer relative">
+          <span class="absolute -inset-px rounded-full ring-1 ring-gold-400/40"></span>
+          <svg class="w-6 h-6 relative" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+      <a href="#" class="flex flex-col items-center justify-center gap-0.5 text-ink-500">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M9 3v4M15 3v4"/></svg>
+        <span class="text-[10px]">Pagos</span>
+      </a>
+      <a href="#" class="flex flex-col items-center justify-center gap-0.5 text-terra-700 font-medium">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10"/></svg>
+        <span class="text-[10px]">Boda</span>
+      </a>
+    </div>
+  </nav>
+
+</body>
+</html>

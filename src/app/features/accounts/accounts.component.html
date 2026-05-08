@@ -31,6 +31,18 @@
         </button>
         <button
           type="button"
+          class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600
+                 text-sm font-semibold text-gray-700 dark:text-gray-300
+                 bg-white dark:bg-gray-800
+                 hover:bg-gray-50 dark:hover:bg-gray-700
+                 transition-all duration-200 min-h-[44px]
+                 disabled:opacity-60 disabled:cursor-not-allowed"
+          [disabled]="accounts().length < 2"
+          (click)="openTransferModal()">
+          Trasladar
+        </button>
+        <button
+          type="button"
           class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl
                  bg-blue-700 hover:bg-blue-800 active:bg-blue-900
                  text-sm font-semibold text-white shadow-sm
@@ -176,7 +188,99 @@
     </section>
   }
 
+  <!-- HISTORIAL DE MOVIMIENTOS -->
+  <section
+    class="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100">
+          Historial de movimientos
+        </h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+          Últimos 20 movimientos entre cuentas y ajustes de saldo.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600
+               text-sm font-semibold text-gray-700 dark:text-gray-300
+               bg-white dark:bg-gray-800
+               hover:bg-gray-50 dark:hover:bg-gray-700
+               transition-all duration-200 min-h-[44px]"
+        (click)="loadMovements()">
+        Actualizar
+      </button>
+    </div>
+
+    @if (movementsLoading()) {
+      <div class="flex items-center justify-center py-10">
+        <span class="w-7 h-7 border-4 border-gray-200 dark:border-gray-800 border-t-blue-700 rounded-full animate-spin"></span>
+      </div>
+    } @else if (movements().length === 0) {
+      <div class="text-sm text-gray-500 dark:text-gray-400 py-8">
+        Aún no hay movimientos registrados.
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500">
+              <th class="text-left py-3 pr-4">Fecha</th>
+              <th class="text-left py-3 pr-4">Desde</th>
+              <th class="text-left py-3 pr-4">Hacia</th>
+              <th class="text-right py-3 pr-4">Monto</th>
+              <th class="text-left py-3 pr-4">Descripción</th>
+              <th class="text-left py-3">Tipo</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of movements(); track m.id) {
+              <tr class="border-t border-gray-100 dark:border-gray-800">
+                <td class="py-3 pr-4 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  {{ formatMovementDate(m.date) }}
+                </td>
+                <td class="py-3 pr-4 text-gray-700 dark:text-gray-300">
+                  {{ movementFromName(m) }}
+                </td>
+                <td class="py-3 pr-4 text-gray-700 dark:text-gray-300">
+                  {{ movementToName(m) }}
+                </td>
+                <td class="py-3 pr-4 text-right font-mono text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                  {{ m.amount | currencyCop }}
+                </td>
+                <td class="py-3 pr-4 text-gray-600 dark:text-gray-400">
+                  {{ m.description ?? "—" }}
+                </td>
+                <td class="py-3">
+                  <span
+                    class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                    [ngClass]="movementTypeClasses(m)">
+                    {{ movementTypeLabel(m) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
 </div>
+
+
+
+
+<!-- MODAL TRASLADO ENTRE CUENTAS -->
+@if (showTransferModal()) {
+  <app-account-transfer
+    [accounts]="accounts()"
+    (closed)="closeTransferModal()"
+    (completed)="onTransferCompleted()">
+  </app-account-transfer>
+}
 
 <!-- MODAL CREAR CUENTA -->
 @if (showCreateModal()) {

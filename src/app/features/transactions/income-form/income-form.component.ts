@@ -23,6 +23,7 @@ export const INCOME_CATEGORIES = [
   { value: 'Transferencia', label: 'Transferencia', icon: '💸' },
   { value: 'Freelance', label: 'Freelance', icon: '💻' },
   { value: 'Arriendo recibido', label: 'Arriendo recibido', icon: '🏠' },
+  { value: 'Aporte al hogar', label: 'Aporte al hogar', icon: '🏡' },
   { value: 'Otro ingreso', label: 'Otro ingreso', icon: '📥' },
 ];
 
@@ -176,6 +177,7 @@ export class IncomeFormComponent implements OnInit {
     return acc.bank_slug ?? '';
   }
 }
+
 
 
 
